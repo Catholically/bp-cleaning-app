@@ -1,0 +1,408 @@
+'use client'
+
+import { useEffect, useState, useRef } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/providers/auth-provider'
+import { formatCurrency, formatNumber, cn } from '@/lib/utils'
+import { Product, Worksite } from '@/lib/types'
+import { 
+  ArrowUpFromLine, 
+  Camera, 
+  Search, 
+  Minus, 
+  Plus, 
+  Check, 
+  X,
+  ChevronDown,
+  Loader2
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+
+export default function ScaricoPage() {
+  const { user, profile } = useAuth()
+  const router = useRouter()
+  const [products, setProducts] = useState<Product[]>([])
+  const [worksites, setWorksites] = useState<Worksite[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [selectedWorksite, setSelectedWorksite] = useState<Worksite | null>(null)
+  const [quantity, setQuantity] = useState(1)
+  const [submitting, setSubmitting] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [successData, setSuccessData] = useState<any>(null)
+  const [showWorksiteSelect, setShowWorksiteSelect] = useState(false)
+  const [showScanner, setShowScanner] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const supabase = createClient()
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    const [productsRes, worksitesRes] = await Promise.all([
+      supabase.from('products').select('*').eq('is_active', true).order('name'),
+      supabase.from('worksites').select('*').eq('status', 'active').order('code')
+    ])
+
+    if (productsRes.data) setProducts(productsRes.data)
+    if (worksitesRes.data) setWorksites(worksitesRes.data)
+    setLoading(false)
+  }
+
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(search.toLowerCase()) ||
+    p.barcode?.toLowerCase().includes(search.toLowerCase())
+  )
+
+  const handleSubmit = async () => {
+    if (!selectedProduct || !selectedWorksite || !user) return
+
+    setSubmitting(true)
+    try {
+      const { error } = await supabase.from('movements').insert({
+        type: 'scarico',
+        product_id: selectedProduct.id,
+        worksite_id: selectedWorksite.id,
+        quantity: quantity,
+        unit_cost_at_time: selectedProduct.unit_cost,
+        operator_id: user.id
+      })
+
+      if (error) throw error
+
+      setSuccessData({
+        product: selectedProduct.name,
+        quantity,
+        worksite: `${selectedWorksite.code} ${selectedWorksite.name}`,
+        total: quantity * selectedProduct.unit_cost
+      })
+      setShowSuccess(true)
+
+      // Reset
+      setSelectedProduct(null)
+      setQuantity(1)
+      setSearch('')
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Errore durante lo scarico')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const startScanner = async () => {
+    setShowScanner(true)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      })
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+      }
+    } catch (err) {
+      console.error('Camera error:', err)
+      alert('Impossibile accedere alla fotocamera')
+      setShowScanner(false)
+    }
+  }
+
+  const stopScanner = () => {
+    if (videoRef.current?.srcObject) {
+      const tracks = (videoRef.current.srcObject as MediaStream).getTracks()
+      tracks.forEach(track => track.stop())
+    }
+    setShowScanner(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-orange-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  // Success screen
+  if (showSuccess && successData) {
+    return (
+      <div className="min-h-screen">
+        <header className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 text-white px-4 pt-12 pb-6 rounded-b-3xl">
+          <div className="flex items-center gap-3">
+            <ArrowUpFromLine className="w-6 h-6" />
+            <div>
+              <h1 className="text-xl font-bold">Scarico Merce</h1>
+              <p className="text-orange-100 text-sm">Operazione completata</p>
+            </div>
+          </div>
+        </header>
+
+        <div className="px-4 -mt-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+            <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Check className="w-10 h-10 text-emerald-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Scarico Registrato!</h2>
+            <p className="text-gray-600 mb-4">
+              {successData.quantity}x {successData.product}<br />
+              → {successData.worksite}
+            </p>
+            <p className="text-2xl font-bold text-emerald-600">
+              {formatCurrency(successData.total)}
+            </p>
+            
+            <button
+              onClick={() => {
+                setShowSuccess(false)
+                setSuccessData(null)
+              }}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 focus:ring-orange-500 shadow-md hover:shadow-lg active:scale-[0.98] w-full mt-6"
+            >
+              Nuovo Scarico
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Product selection screen
+  if (!selectedProduct) {
+    return (
+      <div className="min-h-screen">
+        <header className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 text-white px-4 pt-12 pb-6 rounded-b-3xl">
+          <div className="flex items-center gap-3">
+            <ArrowUpFromLine className="w-6 h-6" />
+            <div>
+              <h1 className="text-xl font-bold">Scarico Merce</h1>
+              <p className="text-orange-100 text-sm">Scansiona o cerca prodotto</p>
+            </div>
+          </div>
+        </header>
+
+        <div className="px-4 -mt-4 space-y-4">
+          {/* Scanner area */}
+          {showScanner ? (
+            <div className="relative aspect-square bg-gray-900 rounded-2xl overflow-hidden">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-48 h-48 border-2 border-cyan-400 rounded-xl relative">
+                  <div className="scanner-line" />
+                </div>
+              </div>
+              <button
+                onClick={stopScanner}
+                className="absolute top-4 right-4 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={startScanner}
+              className="w-full aspect-video bg-gray-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-400"
+            >
+              <Camera className="w-10 h-10" />
+              <span>Tocca per attivare fotocamera</span>
+            </button>
+          )}
+
+          {/* Search */}
+          <div>
+            <p className="text-sm text-gray-500 mb-2">Oppure cerca manualmente</p>
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Nome prodotto o barcode..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-12"
+              />
+            </div>
+          </div>
+
+          {/* Recent/filtered products */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              {search ? 'Risultati ricerca' : 'Prodotti recenti'}
+            </h3>
+            <div className="space-y-2">
+              {filteredProducts.slice(0, 10).map(product => (
+                <button
+                  key={product.id}
+                  onClick={() => setSelectedProduct(product)}
+                  className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200 w-full text-left"
+                >
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-orange-100">
+                    🧴
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-gray-900 truncate">{product.name}</h4>
+                    <p className="text-sm text-gray-500">
+                      {product.quantity_per_package}{product.unit} • {formatCurrency(product.unit_cost)}
+                    </p>
+                  </div>
+                  <span className={cn(
+                    'font-bold',
+                    product.current_stock <= product.min_stock ? 'text-red-500' : 'text-emerald-500'
+                  )}>
+                    {formatNumber(product.current_stock, 0)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Quantity selection screen
+  return (
+    <div className="min-h-screen">
+      <header className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 text-white px-4 pt-12 pb-6 rounded-b-3xl">
+        <div className="flex items-center gap-3">
+          <ArrowUpFromLine className="w-6 h-6" />
+          <div>
+            <h1 className="text-xl font-bold">Scarico Merce</h1>
+            <p className="text-orange-100 text-sm truncate">{selectedProduct.name}</p>
+          </div>
+        </div>
+      </header>
+
+      <div className="px-4 -mt-4 space-y-4">
+        {/* Product card */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Prodotto Selezionato</p>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center text-2xl">
+              🧴
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900">{selectedProduct.name}</h3>
+              <p className="text-sm text-gray-500">
+                Barcode: {selectedProduct.barcode || 'N/A'}
+              </p>
+              <p className="text-sm text-gray-500">
+                {selectedProduct.quantity_per_package} {selectedProduct.unit} • {formatCurrency(selectedProduct.unit_cost)}/pz
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Quantity selector */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-4">Quantità da Scaricare</p>
+          <div className="flex items-center justify-center gap-6">
+            <button
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl font-bold transition-all duration-200 active:scale-95 bg-red-100 text-red-600 hover:bg-red-200"
+            >
+              <Minus className="w-6 h-6" />
+            </button>
+            <span className="text-5xl font-bold text-gray-900 w-20 text-center">{quantity}</span>
+            <button
+              onClick={() => setQuantity(Math.min(selectedProduct.current_stock, quantity + 1))}
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl font-bold transition-all duration-200 active:scale-95 bg-emerald-100 text-emerald-600 hover:bg-emerald-200"
+            >
+              <Plus className="w-6 h-6" />
+            </button>
+          </div>
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-500">
+              Disponibili: <span className="font-semibold">{formatNumber(selectedProduct.current_stock, 0)}</span> • 
+              Costo: <span className="font-semibold text-orange-600">{formatCurrency(quantity * selectedProduct.unit_cost)}</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Worksite selector */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Cantiere destinazione *</p>
+          <button
+            onClick={() => setShowWorksiteSelect(true)}
+            className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl"
+          >
+            {selectedWorksite ? (
+              <div className="text-left">
+                <p className="font-semibold text-gray-900">{selectedWorksite.code} - {selectedWorksite.name}</p>
+                <p className="text-sm text-gray-500">{selectedWorksite.address}, {selectedWorksite.city}</p>
+              </div>
+            ) : (
+              <span className="text-gray-400">Seleziona cantiere...</span>
+            )}
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex gap-3 pt-2">
+          <button
+            onClick={() => {
+              setSelectedProduct(null)
+              setQuantity(1)
+            }}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 focus:ring-gray-500 flex-1"
+          >
+            Annulla
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={!selectedWorksite || submitting}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 focus:ring-orange-500 shadow-md hover:shadow-lg active:scale-[0.98] flex-1"
+          >
+            {submitting ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <Check className="w-5 h-5" />
+                Conferma
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Worksite selector modal */}
+      {showWorksiteSelect && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
+          <div className="bg-white w-full rounded-t-3xl p-4 max-h-[70vh] overflow-auto animate-slide-up">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">Seleziona Cantiere</h3>
+              <button onClick={() => setShowWorksiteSelect(false)}>
+                <X className="w-6 h-6 text-gray-400" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              {worksites.map(ws => (
+                <button
+                  key={ws.id}
+                  onClick={() => {
+                    setSelectedWorksite(ws)
+                    setShowWorksiteSelect(false)
+                  }}
+                  className={cn(
+                    'w-full p-4 rounded-xl text-left transition-all',
+                    selectedWorksite?.id === ws.id
+                      ? 'bg-orange-100 border-2 border-orange-500'
+                      : 'bg-gray-50 border-2 border-transparent'
+                  )}
+                >
+                  <p className="font-semibold text-gray-900">{ws.code} - {ws.name}</p>
+                  <p className="text-sm text-gray-500">{ws.address}, {ws.city}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
