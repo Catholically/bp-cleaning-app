@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Loader2, Sparkles } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -12,7 +13,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [fullName, setFullName] = useState('')
-  
+
   const router = useRouter()
   const supabase = createClient()
 
@@ -37,7 +38,7 @@ export default function LoginPage() {
           options: {
             data: {
               full_name: fullName,
-              role: 'user' // Default to user, admin can upgrade later
+              role: 'user'
             }
           }
         })
@@ -53,21 +54,32 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 flex flex-col">
-      {/* Header decoration */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0 gradient-water" />
+
+      {/* Decorative elements */}
+      <div className="absolute top-0 right-0 w-64 h-64 opacity-10">
+        <Image src="/logo.svg" alt="" fill className="object-contain" />
+      </div>
+      <div className="absolute bottom-0 left-0 w-48 h-48 opacity-5 transform rotate-180">
+        <Image src="/logo.svg" alt="" fill className="object-contain" />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-5 py-8 relative z-10">
         {/* Logo area */}
-        <div className="mb-8 text-center">
-          <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
-            <Sparkles className="w-10 h-10 text-white" />
+        <div className="mb-10 text-center">
+          <div className="w-24 h-24 bg-white/15 backdrop-blur-md rounded-3xl flex items-center justify-center mx-auto mb-5 shadow-2xl border border-white/20">
+            <Image src="/logo.svg" alt="BP Cleaning" width={56} height={56} />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-1">BP Cleaning</h1>
-          <p className="text-blue-200 text-sm">Gestione Magazzino</p>
+          <h1 className="text-3xl font-bold text-white mb-2">BP Cleaning</h1>
+          <p className="text-sky-200 text-sm font-medium">Gestione Magazzino</p>
         </div>
 
         {/* Login Card */}
         <div className="w-full max-w-sm">
-          <div className="bg-white rounded-3xl shadow-2xl p-6">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-7 border border-white/50">
             <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">
               {mode === 'login' ? 'Bentornato!' : 'Crea Account'}
             </h2>
@@ -80,20 +92,20 @@ export default function LoginPage() {
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="input"
                     placeholder="Mario Rossi"
                     required
                   />
                 </div>
               )}
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="input"
                   placeholder="nome@email.com"
                   required
                 />
@@ -105,7 +117,7 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="input"
                   placeholder="••••••••"
                   required
                   minLength={6}
@@ -114,9 +126,9 @@ export default function LoginPage() {
 
               {error && (
                 <div className={`text-sm p-3 rounded-xl ${
-                  error.includes('email') 
-                    ? 'bg-blue-50 text-blue-700' 
-                    : 'bg-red-50 text-red-700'
+                  error.includes('email') || error.includes('Controlla')
+                    ? 'bg-sky-50 text-sky-700 border border-sky-100'
+                    : 'bg-red-50 text-red-700 border border-red-100'
                 }`}>
                   {error}
                 </div>
@@ -125,7 +137,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 focus:ring-blue-500 shadow-md hover:shadow-lg active:scale-[0.98] w-full py-3"
+                className="btn btn-primary w-full py-3.5 text-base shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40"
               >
                 {loading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -143,17 +155,17 @@ export default function LoginPage() {
                   setMode(mode === 'login' ? 'signup' : 'login')
                   setError('')
                 }}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                className="text-sm text-sky-600 hover:text-sky-700 font-medium transition-colors"
               >
-                {mode === 'login' 
-                  ? 'Non hai un account? Registrati' 
+                {mode === 'login'
+                  ? 'Non hai un account? Registrati'
                   : 'Hai già un account? Accedi'}
               </button>
             </div>
           </div>
 
-          {/* Footer text */}
-          <p className="text-center text-blue-200 text-xs mt-6">
+          {/* Footer */}
+          <p className="text-center text-sky-200/80 text-xs mt-8">
             © {new Date().getFullYear()} BP Cleaning
           </p>
         </div>
