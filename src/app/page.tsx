@@ -50,15 +50,17 @@ interface RecentMovement {
 }
 
 export default function AdminDashboard() {
-  const { profile, isSuperuser } = useAuth()
+  const { profile, isSuperuser, loading: authLoading } = useAuth()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [lowStock, setLowStock] = useState<LowStockItem[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
   useEffect(() => {
-    fetchDashboardData()
-  }, [])
+    if (!authLoading) {
+      fetchDashboardData()
+    }
+  }, [authLoading])
 
   const fetchDashboardData = async () => {
     try {
@@ -170,7 +172,7 @@ export default function AdminDashboard() {
     return `${diffDays}g fa`
   }
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 to-cyan-50">
         <div className="flex flex-col items-center gap-4">
