@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useMemo } from 'react'
+import { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import type { Profile } from '@/lib/types'
@@ -23,20 +23,12 @@ const AuthContext = createContext<AuthContextType>({
   refreshProfile: async () => {}
 })
 
-// Create singleton client outside component
-let supabaseClient: ReturnType<typeof createClient> | null = null
-function getSupabaseClient() {
-  if (!supabaseClient) {
-    supabaseClient = createClient()
-  }
-  return supabaseClient
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = useMemo(() => getSupabaseClient(), [])
+  const supabaseRef = useRef(createClient())
+  const supabase = supabaseRef.current
 
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -60,36 +52,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    let mounted = true
+
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      
-      if (user) {
-        const profile = await fetchProfile(user.id)
-        setProfile(profile)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!mounted) return
+
+        setUser(user)
+
+        if (user) {
+          const profile = await fetchProfile(user.id)
+          if (mounted) setProfile(profile)
+        }
+      } catch (error) {
+        console.error('Auth error:', error)
+      } finally {
+        if (mounted) setLoading(false)
       }
-      
-      setLoading(false)
     }
 
     getUser()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: any, session: any) => {
+        if (!mounted) return
+
         setUser(session?.user ?? null)
-        
+
         if (session?.user) {
           const profile = await fetchProfile(session.user.id)
-          setProfile(profile)
+          if (mounted) setProfile(profile)
         } else {
           setProfile(null)
         }
-        
+
         setLoading(false)
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const signOut = async () => {
