@@ -48,7 +48,21 @@ export default function EtichettePage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
-    loadProducts()
+    let isMounted = true
+
+    const load = async () => {
+      try {
+        await loadProducts()
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+
+    load()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   async function loadProducts() {
@@ -62,7 +76,6 @@ export default function EtichettePage() {
     if (data && !error) {
       setProducts(data.map((p: Product) => ({ ...p, printQuantity: 1, selected: false })))
     }
-    setLoading(false)
   }
 
   const filteredProducts = products.filter(p => {
@@ -233,7 +246,7 @@ export default function EtichettePage() {
             <Link href="/" className="p-2 hover:bg-white/20 rounded-lg transition-colors">
               <ChevronLeft className="w-5 h-5" />
             </Link>
-            <div>
+            <div className="flex-1">
               <h1 className="text-2xl font-bold flex items-center gap-2">
                 <Tag className="w-6 h-6" />
                 Stampa Etichette
@@ -257,6 +270,30 @@ export default function EtichettePage() {
               <div className="text-xs text-sky-100">Pagine A4</div>
             </div>
           </div>
+
+          {/* Print Button - Inside header */}
+          <button
+            onClick={generatePDF}
+            disabled={generating || selectedProducts.length === 0}
+            className="w-full mt-4 bg-white text-sky-600 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-sky-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-lg"
+          >
+            {generating ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-sky-600"></div>
+                Generazione in corso...
+              </>
+            ) : selectedProducts.length === 0 ? (
+              <>
+                <Printer className="w-6 h-6" />
+                Seleziona prodotti da stampare
+              </>
+            ) : (
+              <>
+                <Printer className="w-6 h-6" />
+                STAMPA PDF ({totalLabels} etichette)
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -370,30 +407,6 @@ export default function EtichettePage() {
         )}
       </div>
 
-      {/* Fixed Bottom Action */}
-      {selectedProducts.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 safe-area-bottom">
-          <div className="max-w-4xl mx-auto">
-            <button
-              onClick={generatePDF}
-              disabled={generating}
-              className="w-full bg-gradient-to-r from-sky-500 to-cyan-500 text-white py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2 hover:from-sky-600 hover:to-cyan-600 transition-colors disabled:opacity-50"
-            >
-              {generating ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Generazione in corso...
-                </>
-              ) : (
-                <>
-                  <Printer className="w-5 h-5" />
-                  Genera PDF ({totalLabels} etichette, {Math.ceil(totalLabels / LABELS_PER_PAGE)} pagine)
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Hidden canvas for barcode generation */}
       <canvas ref={canvasRef} style={{ display: 'none' }} />

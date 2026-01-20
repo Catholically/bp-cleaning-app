@@ -19,7 +19,21 @@ function ProductsContent() {
   const supabase = createClient()
 
   useEffect(() => {
-    fetchProducts()
+    let isMounted = true
+
+    const loadData = async () => {
+      try {
+        await fetchProducts()
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+
+    loadData()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const fetchProducts = async () => {
@@ -33,7 +47,6 @@ function ProductsContent() {
     if (!error && data) {
       setProducts(data)
     }
-    setLoading(false)
   }
 
   const filteredProducts = useMemo(() => {

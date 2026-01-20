@@ -37,10 +37,21 @@ export default function ScaricoPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    fetchData()
+    let isMounted = true
+
+    const load = async () => {
+      try {
+        await fetchData()
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+
+    load()
 
     // Cleanup camera on unmount to prevent memory leaks
     return () => {
+      isMounted = false
       if (videoRef.current?.srcObject) {
         const tracks = (videoRef.current.srcObject as MediaStream).getTracks()
         tracks.forEach(track => track.stop())
@@ -56,7 +67,6 @@ export default function ScaricoPage() {
 
     if (productsRes.data) setProducts(productsRes.data)
     if (worksitesRes.data) setWorksites(worksitesRes.data)
-    setLoading(false)
   }
 
   const filteredProducts = products.filter(p =>
@@ -69,6 +79,24 @@ export default function ScaricoPage() {
 
     setSubmitting(true)
     try {
+      // Verifica stock attuale prima di procedere (previene stock negativo)
+      const { data: freshProduct, error: fetchError } = await supabase
+        .from('products')
+        .select('current_stock')
+        .eq('id', selectedProduct.id)
+        .single()
+
+      if (fetchError) throw fetchError
+
+      if (freshProduct.current_stock < quantity) {
+        alert(`Stock insufficiente! Disponibili solo ${freshProduct.current_stock} unità.`)
+        // Aggiorna il prodotto selezionato con lo stock corretto
+        setSelectedProduct({ ...selectedProduct, current_stock: freshProduct.current_stock })
+        setQuantity(Math.min(quantity, freshProduct.current_stock))
+        setSubmitting(false)
+        return
+      }
+
       const { error } = await supabase.from('movements').insert({
         type: 'scarico',
         product_id: selectedProduct.id,

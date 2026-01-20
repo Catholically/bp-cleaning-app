@@ -1,5 +1,8 @@
 import { createBrowserClient } from '@supabase/ssr'
 
+// Singleton pattern to prevent multiple Supabase instances
+let supabaseInstance: ReturnType<typeof createBrowserClient> | null = null
+
 export function createClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -15,8 +18,8 @@ export function createClient() {
         onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
       },
       from: () => ({
-        select: () => ({ 
-          eq: () => ({ 
+        select: () => ({
+          eq: () => ({
             order: () => ({ data: [], error: null }),
             single: () => ({ data: null, error: null }),
             lte: () => ({ data: [], error: null }),
@@ -33,5 +36,12 @@ export function createClient() {
     } as any
   }
 
-  return createBrowserClient(supabaseUrl, supabaseKey)
+  // Return existing instance if available (singleton)
+  if (supabaseInstance) {
+    return supabaseInstance
+  }
+
+  // Create new instance only once
+  supabaseInstance = createBrowserClient(supabaseUrl, supabaseKey)
+  return supabaseInstance
 }

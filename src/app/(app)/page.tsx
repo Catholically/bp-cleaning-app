@@ -41,7 +41,21 @@ export default function HomePage() {
   const supabase = createClient()
 
   useEffect(() => {
-    fetchDashboardData()
+    let isMounted = true
+
+    const loadData = async () => {
+      await fetchDashboardData()
+      // Safety: ensure loading is false even if something goes wrong
+      if (isMounted && loading) {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const fetchDashboardData = async () => {

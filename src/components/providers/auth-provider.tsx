@@ -54,36 +54,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true
 
-    const getUser = async () => {
+    // Use getSession first (reads from local storage, faster)
+    // Then onAuthStateChange will handle token refresh if needed
+    const initAuth = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
+        const { data: { session }, error } = await supabase.auth.getSession()
+
         if (!mounted) return
 
-        setUser(user)
-
-        if (user) {
-          const profile = await fetchProfile(user.id)
-          if (mounted) setProfile(profile)
+        if (error || !session) {
+          setUser(null)
+          setProfile(null)
+          setLoading(false)
+          return
         }
+
+        setUser(session.user)
+
+        // Fetch profile in background, don't block loading
+        fetchProfile(session.user.id).then(profile => {
+          if (mounted) setProfile(profile)
+        })
+
+        setLoading(false)
       } catch (error) {
-        console.error('Auth error:', error)
-      } finally {
-        if (mounted) setLoading(false)
+        console.error('Auth init error:', error)
+        if (mounted) {
+          setUser(null)
+          setProfile(null)
+          setLoading(false)
+        }
       }
     }
 
-    getUser()
+    initAuth()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: any, session: any) => {
         if (!mounted) return
 
-        setUser(session?.user ?? null)
-
         if (session?.user) {
-          const profile = await fetchProfile(session.user.id)
-          if (mounted) setProfile(profile)
+          setUser(session.user)
+          // Fetch profile in background
+          fetchProfile(session.user.id).then(profile => {
+            if (mounted) setProfile(profile)
+          })
         } else {
+          setUser(null)
           setProfile(null)
         }
 

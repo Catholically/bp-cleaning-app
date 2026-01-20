@@ -29,7 +29,21 @@ export default function CaricoPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    fetchProducts()
+    let isMounted = true
+
+    const load = async () => {
+      try {
+        await fetchProducts()
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+
+    load()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const fetchProducts = async () => {
@@ -40,7 +54,6 @@ export default function CaricoPage() {
       .order('name')
     
     if (data) setProducts(data)
-    setLoading(false)
   }
 
   const filteredProducts = products.filter(p =>
