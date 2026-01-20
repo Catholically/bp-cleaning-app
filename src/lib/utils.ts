@@ -90,3 +90,21 @@ export function truncate(str: string, length: number): string {
   if (str.length <= length) return str
   return str.slice(0, length) + '...'
 }
+
+// SKU prefix mapping for each category
+export const SKU_PREFIXES: Record<string, string> = {
+  detergente: 'DET',
+  sgrassatore: 'SGR',
+  disinfettante: 'DIS',
+  lucidante: 'LUC',
+  deodorante: 'DEO',
+  accessorio: 'ACC',
+  attrezzatura: 'ATT',
+  altro: 'ALT'
+}
+
+// Generate next SKU for a category (needs current max number from DB)
+export function generateSKU(category: string, nextNumber: number): string {
+  const prefix = SKU_PREFIXES[category] || 'ALT'
+  return `${prefix}-${nextNumber.toString().padStart(3, '0')}`
+}

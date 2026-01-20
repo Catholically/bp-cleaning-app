@@ -1,28 +1,22 @@
 'use client'
 
 import { useAuth } from '@/components/providers/auth-provider'
-import { 
-  Settings, 
-  User, 
-  Building2, 
-  FileSpreadsheet, 
+import {
+  Settings,
+  User,
+  Building2,
+  FileSpreadsheet,
   LogOut,
   ChevronRight,
   Shield,
   Users,
-  Truck
+  Truck,
+  Tag
 } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 export default function ImpostazioniPage() {
   const { profile, isSuperuser, signOut } = useAuth()
-  const router = useRouter()
-
-  const handleSignOut = async () => {
-    await signOut()
-    router.push('/login')
-  }
 
   return (
     <div className="min-h-screen">
@@ -61,7 +55,7 @@ export default function ImpostazioniPage() {
           <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider px-1">
             Gestione
           </h3>
-          
+
           <Link href="/cantieri" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-violet-100">
               <Building2 className="w-5 h-5 text-violet-600" />
@@ -104,7 +98,7 @@ export default function ImpostazioniPage() {
           <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider px-1">
             Report & Export
           </h3>
-          
+
           <Link href="/report" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-emerald-100">
               <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
@@ -115,12 +109,23 @@ export default function ImpostazioniPage() {
             </div>
             <ChevronRight className="w-5 h-5 text-gray-300" />
           </Link>
+
+          <Link href="/etichette" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-sky-100">
+              <Tag className="w-5 h-5 text-sky-600" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-semibold text-gray-900">Stampa Etichette</h4>
+              <p className="text-sm text-gray-500">PDF etichette con barcode</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-300" />
+          </Link>
         </div>
 
         {/* Sign out */}
         <div className="pt-4">
           <button
-            onClick={handleSignOut}
+            onClick={signOut}
             className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200 w-full text-left hover:bg-red-50"
           >
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-red-100">

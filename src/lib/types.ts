@@ -38,6 +38,7 @@ export type ProductUnit = 'litri' | 'pezzi' | 'kg' | 'ml' | 'rotoli' | 'confezio
 
 export interface Product {
   id: string
+  sku?: string
   barcode?: string
   name: string
   category: ProductCategory
