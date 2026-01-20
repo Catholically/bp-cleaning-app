@@ -38,6 +38,14 @@ export default function ScaricoPage() {
 
   useEffect(() => {
     fetchData()
+
+    // Cleanup camera on unmount to prevent memory leaks
+    return () => {
+      if (videoRef.current?.srcObject) {
+        const tracks = (videoRef.current.srcObject as MediaStream).getTracks()
+        tracks.forEach(track => track.stop())
+      }
+    }
   }, [])
 
   const fetchData = async () => {
@@ -152,15 +160,23 @@ export default function ScaricoPage() {
               {formatCurrency(successData.total)}
             </p>
             
-            <button
-              onClick={() => {
-                setShowSuccess(false)
-                setSuccessData(null)
-              }}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 focus:ring-orange-500 shadow-md hover:shadow-lg active:scale-[0.98] w-full mt-6"
-            >
-              Nuovo Scarico
-            </button>
+            <div className="flex flex-col gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowSuccess(false)
+                  setSuccessData(null)
+                }}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 focus:ring-orange-500 shadow-md hover:shadow-lg active:scale-[0.98] w-full"
+              >
+                Nuovo Scarico
+              </button>
+              <button
+                onClick={() => router.push('/movimenti')}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 focus:ring-gray-500 w-full"
+              >
+                Torna ai Movimenti
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -120,16 +120,24 @@ export default function CaricoPage() {
               {formatCurrency(successData.total)}
             </p>
             
-            <button
-              onClick={() => {
-                setShowSuccess(false)
-                setSuccessData(null)
-                fetchProducts()
-              }}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 focus:ring-emerald-500 shadow-md hover:shadow-lg active:scale-[0.98] w-full mt-6"
-            >
-              Nuovo Carico
-            </button>
+            <div className="flex flex-col gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowSuccess(false)
+                  setSuccessData(null)
+                  fetchProducts()
+                }}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 focus:ring-emerald-500 shadow-md hover:shadow-lg active:scale-[0.98] w-full"
+              >
+                Nuovo Carico
+              </button>
+              <button
+                onClick={() => router.push('/movimenti')}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 focus:ring-gray-500 w-full"
+              >
+                Torna ai Movimenti
+              </button>
+            </div>
           </div>
         </div>
       </div>
