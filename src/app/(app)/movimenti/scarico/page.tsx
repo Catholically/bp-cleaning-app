@@ -238,7 +238,7 @@ function ScaricoContent() {
         <div className="px-4 -mt-4 space-y-4">
           {/* Scanner area */}
           {showScanner ? (
-            <div className="relative aspect-square bg-gray-900 rounded-2xl overflow-hidden">
+            <div className="relative h-48 sm:h-56 md:h-64 max-w-md mx-auto bg-gray-900 rounded-2xl overflow-hidden">
               <video
                 ref={videoRef}
                 autoPlay
@@ -246,24 +246,24 @@ function ScaricoContent() {
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-48 h-48 border-2 border-cyan-400 rounded-xl relative">
+                <div className="w-32 h-32 sm:w-40 sm:h-40 border-2 border-cyan-400 rounded-xl relative">
                   <div className="scanner-line" />
                 </div>
               </div>
               <button
                 onClick={stopScanner}
-                className="absolute top-4 right-4 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center"
+                className="absolute top-3 right-3 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center"
               >
-                <X className="w-5 h-5 text-white" />
+                <X className="w-4 h-4 text-white" />
               </button>
             </div>
           ) : (
             <button
               onClick={startScanner}
-              className="w-full aspect-video bg-gray-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-400"
+              className="w-full h-32 sm:h-40 max-w-md mx-auto bg-gray-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-400"
             >
-              <Camera className="w-10 h-10" />
-              <span>Tocca per attivare fotocamera</span>
+              <Camera className="w-8 h-8" />
+              <span className="text-sm">Tocca per attivare fotocamera</span>
             </button>
           )}
 
