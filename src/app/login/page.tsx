@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { Loader2, Mail, Lock, Eye, EyeOff, User } from 'lucide-react'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -11,6 +13,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [fullName, setFullName] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   const router = useRouter()
   const supabase = createClient()
@@ -44,306 +47,162 @@ export default function LoginPage() {
         setError('Controlla la tua email per confermare la registrazione')
         setMode('login')
       }
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Si è verificato un errore'
-      setError(errorMessage)
+    } catch (err: any) {
+      setError(err.message || 'Si è verificato un errore')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <>
-      <style jsx global>{`
-        .login-body {
-          margin: 0;
-          padding: 0;
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background: linear-gradient(135deg, #0093E9 0%, #004d7a 100%);
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          position: relative;
-          overflow: hidden;
-        }
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-[#0a1628]">
+      {/* Background with wave pattern */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a1628] via-[#0d2847] to-[#0a1628]" />
+        {/* Wave decorations */}
+        <svg className="absolute bottom-0 left-0 right-0 opacity-10" viewBox="0 0 1440 320" preserveAspectRatio="none">
+          <path fill="#38bdf8" d="M0,192L48,176C96,160,192,128,288,128C384,128,480,160,576,186.7C672,213,768,235,864,213.3C960,192,1056,128,1152,112C1248,96,1344,128,1392,144L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" />
+        </svg>
+        <svg className="absolute top-0 left-0 right-0 opacity-5 rotate-180" viewBox="0 0 1440 320" preserveAspectRatio="none">
+          <path fill="#38bdf8" d="M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,90.7C672,85,768,107,864,128C960,149,1056,171,1152,165.3C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" />
+        </svg>
+      </div>
 
-        .bg-decoration {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          background-image:
-            radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 20%),
-            radial-gradient(circle at 10% 80%, rgba(255,255,255,0.05) 0%, transparent 20%);
-          z-index: 0;
-        }
+      {/* Sparkle decoration */}
+      <div className="absolute bottom-8 right-8 text-sky-400/30">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
+        </svg>
+      </div>
 
-        .login-container {
-          z-index: 1;
-          text-align: center;
-          width: 100%;
-          max-width: 400px;
-          padding: 0 20px;
-        }
-
-        .header-logo {
-          margin-bottom: 20px;
-        }
-
-        .logo-icon {
-          width: 60px;
-          height: auto;
-          margin-bottom: 10px;
-          filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-        }
-
-        .brand-name {
-          color: white;
-          font-size: 24px;
-          font-weight: bold;
-          margin: 0;
-          letter-spacing: 0.5px;
-        }
-
-        .brand-subtitle {
-          color: rgba(255,255,255,0.8);
-          font-size: 14px;
-          margin-top: 5px;
-        }
-
-        .login-card {
-          background: white;
-          border-radius: 20px;
-          padding: 40px 30px;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-          text-align: left;
-        }
-
-        .card-title {
-          text-align: center;
-          color: #333;
-          font-size: 22px;
-          font-weight: 800;
-          margin-bottom: 30px;
-        }
-
-        .input-group {
-          margin-bottom: 20px;
-        }
-
-        .input-label {
-          display: block;
-          color: #666;
-          font-size: 12px;
-          font-weight: bold;
-          margin-bottom: 8px;
-        }
-
-        .input-field {
-          width: 100%;
-          padding: 12px 15px;
-          border: 1px solid #e0e0e0;
-          border-radius: 8px;
-          background-color: #f9f9f9;
-          font-size: 14px;
-          box-sizing: border-box;
-          color: #333;
-        }
-
-        .input-field::placeholder {
-          color: #ccc;
-        }
-
-        .input-field:focus {
-          outline: none;
-          border-color: #0099ff;
-          background-color: #fff;
-        }
-
-        .btn-login {
-          width: 100%;
-          padding: 12px;
-          background-color: #0099ff;
-          color: white;
-          border: none;
-          border-radius: 25px;
-          font-size: 16px;
-          font-weight: bold;
-          cursor: pointer;
-          margin-top: 10px;
-          transition: background 0.3s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-        }
-
-        .btn-login:hover {
-          background-color: #007acc;
-        }
-
-        .btn-login:disabled {
-          background-color: #99d6ff;
-          cursor: not-allowed;
-        }
-
-        .register-link {
-          display: block;
-          text-align: center;
-          margin-top: 20px;
-          font-size: 12px;
-          color: #666;
-        }
-
-        .register-link button {
-          color: #0099ff;
-          background: none;
-          border: none;
-          font-weight: 600;
-          cursor: pointer;
-          font-size: 12px;
-        }
-
-        .register-link button:hover {
-          text-decoration: underline;
-        }
-
-        .login-footer {
-          margin-top: 40px;
-          color: rgba(255,255,255,0.4);
-          font-size: 10px;
-        }
-
-        .error-message {
-          padding: 10px 15px;
-          border-radius: 8px;
-          font-size: 12px;
-          margin-bottom: 15px;
-          text-align: center;
-        }
-
-        .error-message.info {
-          background-color: #e3f2fd;
-          color: #1565c0;
-          border: 1px solid #90caf9;
-        }
-
-        .error-message.error {
-          background-color: #ffebee;
-          color: #c62828;
-          border: 1px solid #ef9a9a;
-        }
-
-        .spinner {
-          width: 20px;
-          height: 20px;
-          border: 2px solid rgba(255,255,255,0.3);
-          border-top-color: white;
-          border-radius: 50%;
-          animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-
-      <div className="login-body">
-        <div className="bg-decoration"></div>
-
-        <div className="login-container">
-          <div className="header-logo">
-            <svg className="logo-icon" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
-              <path d="M100 0 C 100 0 10 120 10 170 A 90 90 0 0 0 190 170 C 190 120 100 0 100 0 Z" fill="#bce6f7" />
-              <path d="M190 170 A 90 90 0 0 1 10 170 C 10 140 40 80 100 0 C 120 40 190 110 190 170" fill="#89d0ef" />
-              <path d="M185 180 A 85 85 0 0 1 20 160 C 40 100 100 0 100 0 C 140 80 185 130 185 180" fill="#29abe2" />
-              <path d="M175 190 A 75 75 0 0 1 40 180 C 60 120 100 0 100 0 C 150 100 175 140 175 190" fill="#0071bc" />
-              <path d="M140 100 Q 170 150 145 200 Q 155 160 140 100" fill="#ffffff" />
-            </svg>
-            <div className="brand-name">BP Cleaning</div>
-            <div className="brand-subtitle">Gestione Magazzino</div>
+      {/* Content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-5 py-8 relative z-10">
+        {/* Logo and brand */}
+        <div className="mb-8 text-center">
+          <div className="w-20 h-20 mx-auto mb-4">
+            <Image
+              src="/logo.svg"
+              alt="BP Cleaning"
+              width={80}
+              height={80}
+              className="drop-shadow-lg"
+            />
           </div>
+          <h1 className="text-3xl font-bold text-white mb-1" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+            BP Cleaning srl
+          </h1>
+          <p className="text-sky-300 text-sm font-medium tracking-wide">Multiservice</p>
+        </div>
 
-          <form className="login-card" onSubmit={handleSubmit}>
-            <div className="card-title">
+        {/* Login Card */}
+        <div className="w-full max-w-sm">
+          <div className="bg-white rounded-3xl shadow-2xl p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
               {mode === 'login' ? 'Bentornato!' : 'Crea Account'}
-            </div>
+            </h2>
 
-            {mode === 'signup' && (
-              <div className="input-group">
-                <label className="input-label">Nome completo</label>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === 'signup' && (
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-sky-500">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 border-sky-200 focus:border-sky-500 focus:outline-none transition-colors text-gray-700 placeholder-gray-400"
+                    placeholder="Nome completo"
+                    required
+                  />
+                </div>
+              )}
+
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-sky-500">
+                  <Mail className="w-5 h-5" />
+                </div>
                 <input
-                  type="text"
-                  className="input-field"
-                  placeholder="Mario Rossi"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 border-sky-200 focus:border-sky-500 focus:outline-none transition-colors text-gray-700 placeholder-gray-400"
+                  placeholder="Email"
                   required
                 />
               </div>
-            )}
 
-            <div className="input-group">
-              <label className="input-label">Email</label>
-              <input
-                type="email"
-                className="input-field"
-                placeholder="nome@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="input-group">
-              <label className="input-label">Password</label>
-              <input
-                type="password"
-                className="input-field"
-                placeholder="........"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-            </div>
-
-            {error && (
-              <div className={`error-message ${error.includes('email') || error.includes('Controlla') ? 'info' : 'error'}`}>
-                {error}
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-sky-500">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-sky-200 focus:border-sky-500 focus:outline-none transition-colors text-gray-700 placeholder-gray-400"
+                  placeholder="Password"
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-sky-400 hover:text-sky-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
-            )}
 
-            <button type="submit" className="btn-login" disabled={loading}>
-              {loading ? (
-                <div className="spinner"></div>
-              ) : mode === 'login' ? (
-                'Accedi'
-              ) : (
-                'Registrati'
+              {error && (
+                <div className={`text-sm p-3 rounded-xl ${
+                  error.includes('email') || error.includes('Controlla')
+                    ? 'bg-sky-50 text-sky-700 border border-sky-200'
+                    : 'bg-red-50 text-red-700 border border-red-200'
+                }`}>
+                  {error}
+                </div>
               )}
-            </button>
 
-            <div className="register-link">
-              {mode === 'login' ? 'Non hai un account? ' : 'Hai già un account? '}
               <button
-                type="button"
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 bg-gradient-to-r from-sky-500 to-sky-600 text-white font-semibold rounded-full shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:from-sky-600 hover:to-sky-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : mode === 'login' ? (
+                  'Accedi'
+                ) : (
+                  'Registrati'
+                )}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <span className="text-gray-500 text-sm">
+                {mode === 'login' ? 'Non hai un account? ' : 'Hai già un account? '}
+              </span>
+              <button
                 onClick={() => {
                   setMode(mode === 'login' ? 'signup' : 'login')
                   setError('')
                 }}
+                className="text-sm text-sky-600 hover:text-sky-700 font-semibold transition-colors"
               >
                 {mode === 'login' ? 'Registrati' : 'Accedi'}
               </button>
             </div>
-          </form>
+          </div>
 
-          <div className="login-footer">
-            © 2026 BP Cleaning
+          {/* Footer with reflection effect */}
+          <div className="mt-8 text-center">
+            <p className="text-sky-300/60 text-xs">
+              © {new Date().getFullYear()} BP Cleaning srl Multiservice
+            </p>
           </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }
