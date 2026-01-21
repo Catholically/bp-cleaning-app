@@ -3,77 +3,6 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
-
-// Inline SVG Icons matching the screenshot exactly
-const DropletLogo = () => (
-  <svg width="80" height="100" viewBox="0 0 80 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="dropletGradient" x1="40" y1="0" x2="40" y2="100" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#7DD3FC" />
-        <stop offset="50%" stopColor="#38BDF8" />
-        <stop offset="100%" stopColor="#0284C7" />
-      </linearGradient>
-      <linearGradient id="dropletInner1" x1="30" y1="20" x2="50" y2="80" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#BAE6FD" />
-        <stop offset="100%" stopColor="#38BDF8" />
-      </linearGradient>
-      <linearGradient id="dropletInner2" x1="40" y1="30" x2="40" y2="90" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stopColor="#0EA5E9" />
-        <stop offset="100%" stopColor="#0369A1" />
-      </linearGradient>
-    </defs>
-    {/* Main droplet shape */}
-    <path d="M40 0C40 0 0 50 0 70C0 86.5685 17.9086 100 40 100C62.0914 100 80 86.5685 80 70C80 50 40 0 40 0Z" fill="url(#dropletGradient)" />
-    {/* Inner highlight layer 1 */}
-    <path d="M40 12C40 12 12 52 12 68C12 80.7025 24.536 91 40 91C55.464 91 68 80.7025 68 68C68 52 40 12 40 12Z" fill="url(#dropletInner1)" opacity="0.6" />
-    {/* Inner highlight layer 2 */}
-    <path d="M40 24C40 24 20 54 20 66C20 76.4934 28.9543 85 40 85C51.0457 85 60 76.4934 60 66C60 54 40 24 40 24Z" fill="url(#dropletInner2)" opacity="0.7" />
-    {/* Small shine */}
-    <ellipse cx="28" cy="50" rx="8" ry="12" fill="white" opacity="0.3" />
-  </svg>
-)
-
-const MailIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="4" width="20" height="16" rx="2" />
-    <path d="M22 6L12 13L2 6" />
-  </svg>
-)
-
-const LockIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-    <path d="M7 11V7a5 5 0 0110 0v4" />
-  </svg>
-)
-
-const EyeOffIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
-    <line x1="1" y1="1" x2="23" y2="23" />
-  </svg>
-)
-
-const EyeIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-)
-
-const UserIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
-  </svg>
-)
-
-const SparkleIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="rgba(255,255,255,0.6)">
-    <path d="M12 0L13.5 8.5L22 10L13.5 11.5L12 20L10.5 11.5L2 10L10.5 8.5L12 0Z" />
-  </svg>
-)
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -125,383 +54,364 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative',
-        overflow: 'hidden',
-        background: 'linear-gradient(160deg, #0F2A42 0%, #143D5E 25%, #0E3350 50%, #0B2740 75%, #091E32 100%)'
-      }}
-    >
-      {/* Wave decorations - background */}
-      <svg
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          width: '100%',
-          height: '50%',
-          opacity: 0.15
-        }}
-        viewBox="0 0 1440 500"
-        preserveAspectRatio="none"
-      >
-        <path
-          fill="#0A2840"
-          d="M0,200 C300,280 600,180 900,220 C1200,260 1350,200 1440,240 L1440,500 L0,500 Z"
-        />
-      </svg>
-      <svg
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          width: '100%',
-          height: '40%',
-          opacity: 0.12
-        }}
-        viewBox="0 0 1440 400"
-        preserveAspectRatio="none"
-      >
-        <path
-          fill="#0D3555"
-          d="M0,150 C200,200 400,100 700,180 C1000,260 1200,140 1440,200 L1440,400 L0,400 Z"
-        />
-      </svg>
-      <svg
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          width: '100%',
-          height: '30%',
-          opacity: 0.1
-        }}
-        viewBox="0 0 1440 300"
-        preserveAspectRatio="none"
-      >
-        <path
-          fill="#1A4D70"
-          d="M0,100 C240,160 480,80 720,140 C960,200 1200,120 1440,160 L1440,300 L0,300 Z"
-        />
-      </svg>
+    <>
+      <style jsx global>{`
+        .login-page {
+          --bg1: #0B2A45;
+          --bg2: #0A3F66;
+          --bg3: #0B3557;
+          --bg4: #0A2F4E;
+          --card: #ffffff;
+          --title: #0B2A45;
+          --text: #1F2D3D;
+          --muted: #6B7C8F;
+          --stroke: #1D93CF;
+          --btn1: #26A7DD;
+          --btn2: #0B76B3;
+          --shadow-card: 0 18px 40px rgba(0,0,0,0.28);
+          --shadow-btn: 0 10px 20px rgba(0,0,0,0.22);
+        }
+        .login-page * { box-sizing: border-box; }
+        .login-page {
+          margin: 0;
+          font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+          background: radial-gradient(1200px 900px at 35% 20%, rgba(255,255,255,0.12), transparent 55%),
+                      linear-gradient(135deg, var(--bg1), var(--bg2) 35%, var(--bg3) 70%, var(--bg4));
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+        }
+        .login-frame {
+          width: min(1024px, 100vw);
+          aspect-ratio: 1/1;
+          position: relative;
+          overflow: hidden;
+        }
+        .login-wave {
+          position: absolute;
+          width: 120%;
+          height: 55%;
+          left: -10%;
+          border-radius: 40% 60% 55% 45% / 55% 45% 55% 45%;
+        }
+        .login-wave.w1 {
+          top: 120px;
+          background: rgba(0,0,0,0.18);
+          transform: rotate(-6deg);
+        }
+        .login-wave.w2 {
+          top: 260px;
+          background: rgba(0,0,0,0.10);
+          transform: rotate(10deg);
+        }
+        .login-header {
+          position: absolute;
+          top: 120px;
+          left: 50%;
+          transform: translateX(-50%);
+          text-align: center;
+          width: 100%;
+          padding: 0 24px;
+        }
+        .login-brand {
+          margin-top: 14px;
+          font-size: 54px;
+          font-weight: 700;
+          letter-spacing: 0.3px;
+          text-shadow: 0 10px 18px rgba(0,0,0,0.25);
+        }
+        .login-sub {
+          margin-top: 6px;
+          font-size: 40px;
+          font-weight: 600;
+          opacity: 0.95;
+          text-shadow: 0 10px 18px rgba(0,0,0,0.25);
+        }
+        .login-card {
+          position: absolute;
+          left: 50%;
+          top: 420px;
+          transform: translateX(-50%);
+          width: min(720px, calc(100% - 64px));
+          background: var(--card);
+          border-radius: 28px;
+          box-shadow: var(--shadow-card);
+          color: var(--text);
+          padding: 44px 56px 40px 56px;
+        }
+        .login-card h1 {
+          margin: 0;
+          text-align: center;
+          color: var(--title);
+          font-size: 54px;
+          font-weight: 800;
+        }
+        .login-field {
+          margin-top: 34px;
+          height: 74px;
+          border: 3px solid var(--stroke);
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          padding: 0 18px;
+          gap: 14px;
+          background: #ffffff;
+        }
+        .login-field:first-of-type {
+          margin-top: 44px;
+        }
+        .login-field input {
+          border: none;
+          outline: none;
+          width: 100%;
+          font-size: 24px;
+          color: var(--text);
+          background: transparent;
+        }
+        .login-field input::placeholder {
+          color: var(--muted);
+        }
+        .login-icon {
+          width: 28px;
+          height: 28px;
+          flex: 0 0 auto;
+          color: var(--stroke);
+        }
+        .login-icon.right {
+          opacity: 0.95;
+          cursor: pointer;
+        }
+        .login-btn {
+          margin-top: 28px;
+          height: 84px;
+          border: none;
+          width: 100%;
+          border-radius: 26px;
+          background: linear-gradient(180deg, var(--btn1), var(--btn2));
+          color: white;
+          font-size: 34px;
+          font-weight: 800;
+          box-shadow: var(--shadow-btn);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+        }
+        .login-btn:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+        .login-footerRow {
+          margin-top: 18px;
+          text-align: center;
+          font-size: 24px;
+          color: var(--text);
+        }
+        .login-footerRow button {
+          color: var(--stroke);
+          background: none;
+          border: none;
+          font-weight: 700;
+          font-size: 24px;
+          cursor: pointer;
+        }
+        .login-copyright {
+          position: absolute;
+          left: 50%;
+          bottom: 36px;
+          transform: translateX(-50%);
+          font-size: 22px;
+          color: rgba(255,255,255,0.85);
+          text-align: center;
+          width: 100%;
+          padding: 0 24px;
+        }
+        .login-sparkle {
+          position: absolute;
+          right: 48px;
+          bottom: 92px;
+          width: 44px;
+          height: 44px;
+          opacity: 0.55;
+          color: white;
+          transform: rotate(10deg);
+          filter: drop-shadow(0 6px 10px rgba(0,0,0,0.25));
+        }
+        .login-error {
+          margin-top: 20px;
+          padding: 16px;
+          border-radius: 12px;
+          font-size: 20px;
+          text-align: center;
+        }
+        .login-error.info {
+          background: #F0F9FF;
+          color: #0369A1;
+          border: 1px solid #BAE6FD;
+        }
+        .login-error.error {
+          background: #FEF2F2;
+          color: #DC2626;
+          border: 1px solid #FECACA;
+        }
+        .login-spinner {
+          width: 32px;
+          height: 32px;
+          border: 3px solid rgba(255,255,255,0.3);
+          border-top-color: white;
+          border-radius: 50%;
+          animation: login-spin 0.8s linear infinite;
+        }
+        @keyframes login-spin {
+          to { transform: rotate(360deg); }
+        }
+        @media (max-width: 720px) {
+          .login-brand { font-size: 40px; }
+          .login-sub { font-size: 30px; }
+          .login-card {
+            height: auto;
+            padding: 34px 22px 28px;
+            top: 390px;
+          }
+          .login-card h1 { font-size: 40px; }
+          .login-field { height: 66px; }
+          .login-field input { font-size: 18px; }
+          .login-btn { height: 76px; font-size: 28px; }
+          .login-footerRow { font-size: 18px; }
+          .login-footerRow button { font-size: 18px; }
+        }
+      `}</style>
 
-      {/* Sparkle decoration - bottom right */}
-      <div style={{ position: 'absolute', bottom: '24px', right: '24px', zIndex: 10 }}>
-        <SparkleIcon />
-      </div>
+      <div className="login-page">
+        <div className="login-frame">
+          <div className="login-wave w1"></div>
+          <div className="login-wave w2"></div>
 
-      {/* Main content */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '32px 20px',
-          position: 'relative',
-          zIndex: 10
-        }}
-      >
-        {/* Logo and brand text */}
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <DropletLogo />
+          <div className="login-header">
+            {/* Droplet logo */}
+            <svg width="92" height="92" viewBox="0 0 96 96" aria-hidden="true">
+              <defs>
+                <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor="#7FE0FF"/>
+                  <stop offset="1" stopColor="#1AA7E0"/>
+                </linearGradient>
+                <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="#E7FBFF" stopOpacity="0.9"/>
+                  <stop offset="1" stopColor="#5AD2FF" stopOpacity="0.2"/>
+                </linearGradient>
+              </defs>
+              <path d="M48 6 C40 18 22 36 22 54 C22 72 34 86 48 86 C62 86 74 72 74 54 C74 36 56 18 48 6Z" fill="url(#g1)"/>
+              <path d="M48 16 C43 26 30 40 30 54 C30 66 38 76 48 76 C58 76 66 66 66 54 C66 40 53 26 48 16Z" fill="rgba(0,0,0,0.08)"/>
+              <path d="M38 26 C34 34 30 42 30 52 C30 60 34 68 40 72 C30 58 34 42 44 28Z" fill="url(#g2)"/>
+              <path d="M58 24 C64 34 66 44 64 56 C62 66 54 74 46 76 C58 68 64 58 64 48 C64 40 62 32 58 24Z" fill="rgba(255,255,255,0.35)"/>
+            </svg>
+
+            <div className="login-brand">BP Cleaning srl</div>
+            <div className="login-sub">Multiservice</div>
           </div>
-          <h1
-            style={{
-              fontSize: '32px',
-              fontWeight: 400,
-              color: 'white',
-              marginBottom: '4px',
-              fontFamily: 'Georgia, "Times New Roman", serif',
-              fontStyle: 'italic',
-              letterSpacing: '0.5px'
-            }}
-          >
-            BP Cleaning srl
-          </h1>
-          <p
-            style={{
-              fontSize: '18px',
-              fontWeight: 500,
-              color: 'rgba(255,255,255,0.9)',
-              fontFamily: 'system-ui, -apple-system, sans-serif'
-            }}
-          >
-            Multiservice
-          </p>
-        </div>
 
-        {/* Card container with reflection effect */}
-        <div style={{ width: '100%', maxWidth: '380px' }}>
-          {/* Main card */}
-          <div
-            style={{
-              backgroundColor: 'white',
-              borderRadius: '24px',
-              padding: '40px 32px 32px',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.35), 0 8px 20px rgba(0,0,0,0.2)'
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '28px',
-                fontWeight: 700,
-                color: '#0F2A42',
-                textAlign: 'center',
-                marginBottom: '28px',
-                fontFamily: 'system-ui, -apple-system, sans-serif'
-              }}
-            >
-              {mode === 'login' ? 'Bentornato!' : 'Crea Account'}
-            </h2>
+          <form className="login-card" onSubmit={handleSubmit}>
+            <h1>{mode === 'login' ? 'Bentornato!' : 'Crea Account'}</h1>
 
-            <form onSubmit={handleSubmit}>
-              {mode === 'signup' && (
-                <div style={{ position: 'relative', marginBottom: '16px' }}>
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: '16px',
-                      top: '50%',
-                      transform: 'translateY(-50%)'
-                    }}
-                  >
-                    <UserIcon />
-                  </div>
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Nome completo"
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '16px 16px 16px 52px',
-                      fontSize: '16px',
-                      border: '2px solid #38BDF8',
-                      borderRadius: '50px',
-                      outline: 'none',
-                      color: '#334155',
-                      backgroundColor: 'white',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
-              )}
-
-              {/* Email input */}
-              <div style={{ position: 'relative', marginBottom: '16px' }}>
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: '16px',
-                    top: '50%',
-                    transform: 'translateY(-50%)'
-                  }}
-                >
-                  <MailIcon />
-                </div>
+            {mode === 'signup' && (
+              <div className="login-field">
+                {/* user icon */}
+                <svg className="login-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email"
+                  type="text"
+                  placeholder="Nome completo"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   required
-                  style={{
-                    width: '100%',
-                    padding: '16px 16px 16px 52px',
-                    fontSize: '16px',
-                    border: '2px solid #38BDF8',
-                    borderRadius: '50px',
-                    outline: 'none',
-                    color: '#334155',
-                    backgroundColor: 'white',
-                    boxSizing: 'border-box'
-                  }}
                 />
               </div>
+            )}
 
-              {/* Password input */}
-              <div style={{ position: 'relative', marginBottom: '20px' }}>
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: '16px',
-                    top: '50%',
-                    transform: 'translateY(-50%)'
-                  }}
-                >
-                  <LockIcon />
-                </div>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                  required
-                  minLength={6}
-                  style={{
-                    width: '100%',
-                    padding: '16px 52px 16px 52px',
-                    fontSize: '16px',
-                    border: '2px solid #38BDF8',
-                    borderRadius: '50px',
-                    outline: 'none',
-                    color: '#334155',
-                    backgroundColor: 'white',
-                    boxSizing: 'border-box'
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: 'absolute',
-                    right: '16px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 0
-                  }}
-                >
-                  {showPassword ? <EyeIcon /> : <EyeOffIcon />}
-                </button>
-              </div>
+            <div className="login-field">
+              {/* mail icon */}
+              <svg className="login-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/>
+              </svg>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-              {/* Error message */}
-              {error && (
-                <div
-                  style={{
-                    padding: '12px 16px',
-                    marginBottom: '16px',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    backgroundColor: error.includes('email') || error.includes('Controlla') ? '#F0F9FF' : '#FEF2F2',
-                    color: error.includes('email') || error.includes('Controlla') ? '#0369A1' : '#DC2626',
-                    border: `1px solid ${error.includes('email') || error.includes('Controlla') ? '#BAE6FD' : '#FECACA'}`
-                  }}
-                >
-                  {error}
-                </div>
-              )}
-
-              {/* Submit button */}
-              <button
-                type="submit"
-                disabled={loading}
-                style={{
-                  width: '100%',
-                  padding: '16px',
-                  fontSize: '18px',
-                  fontWeight: 600,
-                  color: 'white',
-                  background: 'linear-gradient(180deg, #38BDF8 0%, #0284C7 100%)',
-                  border: 'none',
-                  borderRadius: '50px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.7 : 1,
-                  boxShadow: '0 8px 20px rgba(2,132,199,0.4)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s ease'
-                }}
+            <div className="login-field">
+              {/* lock icon */}
+              <svg className="login-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M12 17a2 2 0 0 0 2-2v-2a2 2 0 0 0-4 0v2a2 2 0 0 0 2 2zm6-7h-1V8a5 5 0 0 0-10 0v2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2zM9 10V8a3 3 0 0 1 6 0v2H9z"/>
+              </svg>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+              {/* eye-off / eye icon */}
+              <svg
+                className="login-icon right"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                onClick={() => setShowPassword(!showPassword)}
               >
-                {loading ? (
-                  <Loader2 style={{ width: '24px', height: '24px', animation: 'spin 1s linear infinite' }} />
-                ) : mode === 'login' ? (
-                  'Accedi'
+                {showPassword ? (
+                  <path fill="currentColor" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
                 ) : (
-                  'Registrati'
+                  <path fill="currentColor" d="M2 4.27 3.28 3 21 20.72 19.73 22l-3.06-3.06A11.8 11.8 0 0 1 12 20C6 20 1.73 15.61.5 12c.45-1.32 1.27-2.72 2.44-4.06L2 4.27zM12 6c6 0 10.27 4.39 11.5 8-.53 1.56-1.57 3.2-3.12 4.64l-2.02-2.02A5 5 0 0 0 9.4 7.64L7.55 5.79A11.7 11.7 0 0 1 12 6z"/>
                 )}
-              </button>
-            </form>
+              </svg>
+            </div>
 
-            {/* Footer link */}
-            <div style={{ textAlign: 'center', marginTop: '20px' }}>
-              <span style={{ color: '#64748B', fontSize: '14px' }}>
-                {mode === 'login' ? 'Non hai un account? ' : 'Hai già un account? '}
-              </span>
+            {error && (
+              <div className={`login-error ${error.includes('email') || error.includes('Controlla') ? 'info' : 'error'}`}>
+                {error}
+              </div>
+            )}
+
+            <button type="submit" className="login-btn" disabled={loading}>
+              {loading ? (
+                <div className="login-spinner"></div>
+              ) : mode === 'login' ? (
+                'Accedi'
+              ) : (
+                'Registrati'
+              )}
+            </button>
+
+            <div className="login-footerRow">
+              {mode === 'login' ? 'Non hai un account? ' : 'Hai già un account? '}
               <button
+                type="button"
                 onClick={() => {
                   setMode(mode === 'login' ? 'signup' : 'login')
                   setError('')
-                }}
-                style={{
-                  color: '#0EA5E9',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  textDecoration: 'none'
                 }}
               >
                 {mode === 'login' ? 'Registrati' : 'Accedi'}
               </button>
             </div>
-          </div>
+          </form>
 
-          {/* Reflection effect under card */}
-          <div
-            style={{
-              height: '60px',
-              marginTop: '-20px',
-              background: 'linear-gradient(to bottom, rgba(255,255,255,0.08) 0%, transparent 100%)',
-              borderRadius: '0 0 24px 24px',
-              filter: 'blur(4px)',
-              transform: 'scaleY(-0.3)',
-              transformOrigin: 'top'
-            }}
-          />
+          <div className="login-copyright">© 2026 BP Cleaning srl Multiservice</div>
+
+          {/* sparkle */}
+          <svg className="login-sparkle" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M12 2l1.2 5.1L18 9l-4.8 1.9L12 16l-1.2-5.1L6 9l4.8-1.9L12 2zm8 10l.7 3 2.3 1-2.3 1-.7 3-.7-3-2.3-1 2.3-1 .7-3zM4 14l.7 3 2.3 1-2.3 1-.7 3-.7-3-2.3-1 2.3-1 .7-3z"/>
+          </svg>
         </div>
       </div>
-
-      {/* Copyright footer */}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 10,
-          textAlign: 'center',
-          paddingBottom: '24px'
-        }}
-      >
-        <p
-          style={{
-            color: 'rgba(255,255,255,0.7)',
-            fontSize: '13px',
-            fontFamily: 'system-ui, -apple-system, sans-serif'
-          }}
-        >
-          © 2026 BP Cleaning srl Multiservice
-        </p>
-      </div>
-
-      {/* Keyframes for spinner */}
-      <style jsx global>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        input::placeholder {
-          color: #94A3B8;
-        }
-        input:focus {
-          border-color: #0EA5E9 !important;
-          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
-        }
-      `}</style>
-    </div>
+    </>
   )
 }
