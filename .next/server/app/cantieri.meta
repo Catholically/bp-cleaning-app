@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(app)/layout,_N_T_/(app)/cantieri/layout,_N_T_/(app)/cantieri/page,_N_T_/cantieri"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KGFwcCk/cantieri/__PAGE__",
+    "/!KGFwcCk/cantieri",
+    "/!KGFwcCk",
+    "/_index",
+    "/_head"
+  ]
+}

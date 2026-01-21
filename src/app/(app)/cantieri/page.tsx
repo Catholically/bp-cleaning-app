@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import { formatCurrency, cn } from '@/lib/utils'
 import { Worksite } from '@/lib/types'
-import { Building2, Plus, MapPin } from 'lucide-react'
+import { Building2, Plus, MapPin, Search, X } from 'lucide-react'
 import Link from 'next/link'
 
 interface WorksiteWithCosts extends Worksite {
@@ -16,6 +16,7 @@ export default function CantieriPage() {
   const { isSuperuser } = useAuth()
   const [worksites, setWorksites] = useState<WorksiteWithCosts[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
   const supabase = createClient()
 
   useEffect(() => {
@@ -57,8 +58,20 @@ export default function CantieriPage() {
     setLoading(false)
   }
 
-  const activeWorksites = worksites.filter(w => w.status === 'active')
-  const otherWorksites = worksites.filter(w => w.status !== 'active')
+  // Filter worksites by search query
+  const filteredWorksites = worksites.filter(w => {
+    if (!searchQuery.trim()) return true
+    const query = searchQuery.toLowerCase()
+    return (
+      w.name.toLowerCase().includes(query) ||
+      w.code.toLowerCase().includes(query) ||
+      w.address?.toLowerCase().includes(query) ||
+      w.city?.toLowerCase().includes(query)
+    )
+  })
+
+  const activeWorksites = filteredWorksites.filter(w => w.status === 'active')
+  const otherWorksites = filteredWorksites.filter(w => w.status !== 'active')
 
   if (loading) {
     return (
@@ -71,16 +84,36 @@ export default function CantieriPage() {
   return (
     <div className="min-h-screen">
       <header className="bg-gradient-to-r from-violet-500 via-purple-600 to-indigo-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-4">
           <Building2 className="w-6 h-6" />
           <div>
             <h1 className="text-xl font-bold">Cantieri</h1>
-            <p className="text-purple-100 text-sm">Costi prodotti allocati</p>
+            <p className="text-purple-100 text-sm">{worksites.length} cantieri totali</p>
           </div>
+        </div>
+
+        {/* Search bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-300" />
+          <input
+            type="text"
+            placeholder="Cerca cantiere..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-10 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/30"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full"
+            >
+              <X className="w-4 h-4 text-purple-200" />
+            </button>
+          )}
         </div>
       </header>
 
-      <div className="px-4 -mt-4 space-y-4 pb-6">
+      <div className="px-4 -mt-4 space-y-4 pb-24">
         {/* Active worksites */}
         <div>
           <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
@@ -142,7 +175,25 @@ export default function CantieriPage() {
           </div>
         )}
 
-        {worksites.length === 0 && (
+        {filteredWorksites.length === 0 && searchQuery && (
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4 text-gray-400">
+              <Search className="w-8 h-8" />
+            </div>
+            <p className="text-lg font-semibold text-gray-900 mb-2">Nessun risultato</p>
+            <p className="text-sm text-gray-500 max-w-sm">
+              Nessun cantiere trovato per "{searchQuery}"
+            </p>
+            <button
+              onClick={() => setSearchQuery('')}
+              className="mt-4 text-violet-600 font-medium"
+            >
+              Cancella ricerca
+            </button>
+          </div>
+        )}
+
+        {worksites.length === 0 && !searchQuery && (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
             <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4 text-gray-400">
               <Building2 className="w-8 h-8" />

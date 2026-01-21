@@ -1,0 +1,18 @@
+{
+  "/(app)/cantieri/[id]/page": "app/(app)/cantieri/[id]/page.js",
+  "/(app)/cantieri/page": "app/(app)/cantieri/page.js",
+  "/(app)/etichette/page": "app/(app)/etichette/page.js",
+  "/(app)/impostazioni/page": "app/(app)/impostazioni/page.js",
+  "/(app)/movimenti/carico/page": "app/(app)/movimenti/carico/page.js",
+  "/(app)/movimenti/page": "app/(app)/movimenti/page.js",
+  "/(app)/movimenti/scarico/page": "app/(app)/movimenti/scarico/page.js",
+  "/(app)/page": "app/(app)/page.js",
+  "/(app)/prodotti/[id]/page": "app/(app)/prodotti/[id]/page.js",
+  "/(app)/prodotti/page": "app/(app)/prodotti/page.js",
+  "/(app)/report/page": "app/(app)/report/page.js",
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/login/page": "app/login/page.js",
+  "/page": "app/page.js"
+}

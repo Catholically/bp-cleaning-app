@@ -64,15 +64,20 @@ export interface Worksite {
   name: string
   address: string
   city: string
+  cap?: string
+  provincia?: string
+  codice_fiscale?: string
+  partita_iva?: string
   client_name?: string
   client_contact?: string
+  client_phone?: string
+  client_email?: string
   budget_allocated: number
   start_date?: string
   end_date?: string
   status: WorksiteStatus
   notes?: string
   created_at: string
-  updated_at: string
 }
 
 export type MovementType = 'carico' | 'scarico'

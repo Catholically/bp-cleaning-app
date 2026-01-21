@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Package, ClipboardList, Settings } from 'lucide-react'
+import { Home, Package, ClipboardList, Building2, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
   { href: '/', icon: Home, label: 'Home' },
   { href: '/prodotti', icon: Package, label: 'Prodotti' },
   { href: '/movimenti', icon: ClipboardList, label: 'Movimenti' },
+  { href: '/cantieri', icon: Building2, label: 'Cantieri' },
   { href: '/impostazioni', icon: Settings, label: 'Altro' },
 ]
 

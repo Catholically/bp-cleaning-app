@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(app)/layout,_N_T_/(app)/movimenti/layout,_N_T_/(app)/movimenti/page,_N_T_/movimenti"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KGFwcCk/movimenti/__PAGE__",
+    "/!KGFwcCk/movimenti",
+    "/!KGFwcCk",
+    "/_index",
+    "/_head"
+  ]
+}

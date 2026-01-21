@@ -1,0 +1,18 @@
+{
+  "/(app)/cantieri/[id]/page": "/cantieri/[id]",
+  "/(app)/cantieri/page": "/cantieri",
+  "/(app)/etichette/page": "/etichette",
+  "/(app)/impostazioni/page": "/impostazioni",
+  "/(app)/movimenti/carico/page": "/movimenti/carico",
+  "/(app)/movimenti/page": "/movimenti",
+  "/(app)/movimenti/scarico/page": "/movimenti/scarico",
+  "/(app)/page": "/",
+  "/(app)/prodotti/[id]/page": "/prodotti/[id]",
+  "/(app)/prodotti/page": "/prodotti",
+  "/(app)/report/page": "/report",
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/favicon.ico/route": "/favicon.ico",
+  "/login/page": "/login",
+  "/page": "/"
+}

@@ -68,13 +68,6 @@ export default function LoginPage() {
         </svg>
       </div>
 
-      {/* Sparkle decoration */}
-      <div className="absolute bottom-8 right-8 text-sky-400/30">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
-        </svg>
-      </div>
-
       {/* Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-5 py-8 relative z-10">
         {/* Logo and brand */}

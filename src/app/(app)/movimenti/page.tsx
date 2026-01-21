@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDateTime, cn } from '@/lib/utils'
 import { Movement } from '@/lib/types'
-import { 
-  ClipboardList, 
-  ArrowDownToLine, 
+import { useAuth } from '@/components/providers/auth-provider'
+import {
+  ClipboardList,
+  ArrowDownToLine,
   ArrowUpFromLine,
   Filter,
-  ChevronRight
+  ChevronRight,
+  Users
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -17,14 +19,17 @@ export default function MovimentiPage() {
   const [movements, setMovements] = useState<Movement[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'carico' | 'scarico'>('all')
+  const { user, isSuperuser } = useAuth()
   const supabase = createClient()
 
   useEffect(() => {
-    fetchMovements()
-  }, [])
+    if (user) {
+      fetchMovements()
+    }
+  }, [user, isSuperuser])
 
   const fetchMovements = async () => {
-    const { data, error } = await supabase
+    let query = supabase
       .from('movements')
       .select(`
         *,
@@ -34,6 +39,13 @@ export default function MovimentiPage() {
       `)
       .order('created_at', { ascending: false })
       .limit(100)
+
+    // Se non è superuser, filtra solo i propri movimenti
+    if (!isSuperuser && user) {
+      query = query.eq('operator_id', user.id)
+    }
+
+    const { data, error } = await query
 
     if (!error && data) {
       setMovements(data as any)
@@ -72,7 +84,14 @@ export default function MovimentiPage() {
           <ClipboardList className="w-6 h-6" />
           <div>
             <h1 className="text-xl font-bold">Movimenti</h1>
-            <p className="text-blue-100 text-sm">{movements.length} operazioni</p>
+            <p className="text-blue-100 text-sm">
+              {movements.length} operazioni
+              {isSuperuser && (
+                <span className="ml-2 inline-flex items-center gap-1">
+                  <Users className="w-3 h-3" /> tutti
+                </span>
+              )}
+            </p>
           </div>
         </div>
       </header>

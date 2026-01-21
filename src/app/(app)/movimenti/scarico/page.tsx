@@ -1,26 +1,28 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import { formatCurrency, formatNumber, cn } from '@/lib/utils'
 import { Product, Worksite } from '@/lib/types'
-import { 
-  ArrowUpFromLine, 
-  Camera, 
-  Search, 
-  Minus, 
-  Plus, 
-  Check, 
+import {
+  ArrowUpFromLine,
+  Camera,
+  Search,
+  Minus,
+  Plus,
+  Check,
   X,
   ChevronDown,
   Loader2
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function ScaricoPage() {
+function ScaricoContent() {
   const { user, profile } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const productIdFromUrl = searchParams.get('product')
   const [products, setProducts] = useState<Product[]>([])
   const [worksites, setWorksites] = useState<Worksite[]>([])
   const [loading, setLoading] = useState(true)
@@ -41,7 +43,14 @@ export default function ScaricoPage() {
 
     const load = async () => {
       try {
-        await fetchData()
+        const loadedProducts = await fetchData()
+        // Auto-seleziona prodotto se passato via URL
+        if (productIdFromUrl && loadedProducts && isMounted) {
+          const preselected = loadedProducts.find((p: Product) => p.id === productIdFromUrl)
+          if (preselected) {
+            setSelectedProduct(preselected)
+          }
+        }
       } finally {
         if (isMounted) setLoading(false)
       }
@@ -57,9 +66,9 @@ export default function ScaricoPage() {
         tracks.forEach(track => track.stop())
       }
     }
-  }, [])
+  }, [productIdFromUrl])
 
-  const fetchData = async () => {
+  const fetchData = async (): Promise<Product[] | null> => {
     const [productsRes, worksitesRes] = await Promise.all([
       supabase.from('products').select('*').eq('is_active', true).order('name'),
       supabase.from('worksites').select('*').eq('status', 'active').order('code')
@@ -67,6 +76,7 @@ export default function ScaricoPage() {
 
     if (productsRes.data) setProducts(productsRes.data)
     if (worksitesRes.data) setWorksites(worksitesRes.data)
+    return productsRes.data
   }
 
   const filteredProducts = products.filter(p =>
@@ -448,5 +458,17 @@ export default function ScaricoPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function ScaricoPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-orange-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <ScaricoContent />
+    </Suspense>
   )
 }

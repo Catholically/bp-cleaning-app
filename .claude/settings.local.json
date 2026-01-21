@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__execute_sql",
+      "Bash(start \"\" \"C:\\\\AI_Projects\\\\bp-cleaning-app\\\\barcode-demo.html\")",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout /t 5)",
+      "Bash(start \"\" \"http://localhost:3000/etichette\")",
+      "Bash(git add:*)",
+      "Bash(git reset:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: add SKU/barcode system and label printing\n\n- Add SKU field to products \\(format: CAT-NNN\\)\n- Generate EAN-13 barcodes for all products\n- Add /etichette page for printing A4 label sheets \\(65 labels/page\\)\n- Auto-generate SKU/barcode via DB trigger for new products\n- Add jsbarcode and jspdf dependencies\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "mcp__vercel__list_projects",
+      "mcp__vercel__list_teams",
+      "mcp__vercel__list_deployments",
+      "mcp__vercel__get_project",
+      "mcp__vercel__get_deployment_build_logs",
+      "mcp__vercel__web_fetch_vercel_url",
+      "mcp__supabase__get_logs",
+      "Bash(git commit:*)",
+      "Bash(node scripts/generate-icons.js:*)",
+      "Bash(ls:*)",
+      "Bash(git checkout:*)",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__apply_migration"
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+[00:00:00.785] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:00.964] Server  LOG     ✓ Ready in 712ms
+[00:00:13.902] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:14.219] Browser WARN    Image with src "/logo.svg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[00:02:22.809] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:02:28.749] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:15:24.131] Server  LOG     ✓ Compiled in 23ms
+[10:03:22.355] Server  LOG     ✓ Compiled in 137ms
+[10:17:23.126] Server  LOG     ✓ Compiled in 20ms
+[10:17:23.335] Server  ERROR   Error: EPIPE: broken pipe, write
+[10:17:23.454] Server  ERROR   ⨯ "uncaughtException:" Error: EPIPE: broken pipe, write
+[10:17:23.598] Server  ERROR   ⨯ "uncaughtException: " Error: EPIPE: broken pipe, write

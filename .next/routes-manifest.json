@@ -1,0 +1,139 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/cantieri/[id]",
+      "regex": "^/cantieri/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/cantieri/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/prodotti/[id]",
+      "regex": "^/prodotti/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/prodotti/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/cantieri",
+      "regex": "^/cantieri(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/cantieri(?:/)?$"
+    },
+    {
+      "page": "/etichette",
+      "regex": "^/etichette(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/etichette(?:/)?$"
+    },
+    {
+      "page": "/favicon.ico",
+      "regex": "^/favicon\\.ico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/impostazioni",
+      "regex": "^/impostazioni(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/impostazioni(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/movimenti",
+      "regex": "^/movimenti(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/movimenti(?:/)?$"
+    },
+    {
+      "page": "/movimenti/carico",
+      "regex": "^/movimenti/carico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/movimenti/carico(?:/)?$"
+    },
+    {
+      "page": "/movimenti/scarico",
+      "regex": "^/movimenti/scarico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/movimenti/scarico(?:/)?$"
+    },
+    {
+      "page": "/prodotti",
+      "regex": "^/prodotti(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/prodotti(?:/)?$"
+    },
+    {
+      "page": "/report",
+      "regex": "^/report(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/report(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}
