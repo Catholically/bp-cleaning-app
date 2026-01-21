@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, useRef, Suspense, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import { formatCurrency, formatNumber, cn } from '@/lib/utils'
@@ -11,9 +11,12 @@ import {
   Minus,
   Plus,
   Check,
-  Loader2
+  Loader2,
+  Camera,
+  X
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/library'
 
 function CaricoContent() {
   const { user } = useAuth()
@@ -21,6 +24,7 @@ function CaricoContent() {
   const searchParams = useSearchParams()
   const productIdFromUrl = searchParams.get('product')
   const [products, setProducts] = useState<Product[]>([])
+  const [recentProducts, setRecentProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -28,6 +32,10 @@ function CaricoContent() {
   const [submitting, setSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [successData, setSuccessData] = useState<any>(null)
+  const [showScanner, setShowScanner] = useState(false)
+  const [scannerError, setScannerError] = useState<string | null>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -35,7 +43,7 @@ function CaricoContent() {
 
     const load = async () => {
       try {
-        const loadedProducts = await fetchProducts()
+        const { products: loadedProducts } = await fetchData()
         // Auto-seleziona prodotto se passato via URL
         if (productIdFromUrl && loadedProducts && isMounted) {
           const preselected = loadedProducts.find((p: Product) => p.id === productIdFromUrl)
@@ -52,10 +60,11 @@ function CaricoContent() {
 
     return () => {
       isMounted = false
+      stopScanner()
     }
-  }, [productIdFromUrl])
+  }, [productIdFromUrl, user?.id])
 
-  const fetchProducts = async (): Promise<Product[] | null> => {
+  const fetchData = async (): Promise<{ products: Product[] | null, recentProducts: Product[] | null }> => {
     const { data } = await supabase
       .from('products')
       .select('*')
@@ -63,8 +72,115 @@ function CaricoContent() {
       .order('name')
 
     if (data) setProducts(data)
-    return data
+
+    // Fetch recent products used by current operator (last 30 days)
+    let recentProductsData: Product[] = []
+    if (user?.id && data) {
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+      const { data: recentMovements } = await supabase
+        .from('movements')
+        .select('product_id, created_at')
+        .eq('operator_id', user.id)
+        .eq('type', 'carico')
+        .gte('created_at', thirtyDaysAgo.toISOString())
+        .order('created_at', { ascending: false })
+
+      if (recentMovements && recentMovements.length > 0) {
+        const seenIds = new Set<string>()
+        const uniqueProductIds: string[] = []
+        for (const mov of recentMovements) {
+          if (!seenIds.has(mov.product_id)) {
+            seenIds.add(mov.product_id)
+            uniqueProductIds.push(mov.product_id)
+          }
+        }
+
+        const productsMap = new Map(data.map((p: Product) => [p.id, p]))
+        recentProductsData = uniqueProductIds
+          .map(id => productsMap.get(id))
+          .filter((p): p is Product => p !== undefined)
+          .slice(0, 10)
+      }
+    }
+
+    setRecentProducts(recentProductsData)
+    return { products: data, recentProducts: recentProductsData }
   }
+
+  const handleBarcodeDetected = useCallback((barcode: string) => {
+    const foundProduct = products.find(p => p.barcode === barcode)
+    if (foundProduct) {
+      setSelectedProduct(foundProduct)
+      stopScanner()
+    } else {
+      setScannerError(`Prodotto non trovato: ${barcode}`)
+      setTimeout(() => setScannerError(null), 3000)
+    }
+  }, [products])
+
+  const startScanner = async () => {
+    setShowScanner(true)
+    setScannerError(null)
+
+    try {
+      const hints = new Map()
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+        BarcodeFormat.EAN_13,
+        BarcodeFormat.EAN_8,
+        BarcodeFormat.CODE_128,
+        BarcodeFormat.CODE_39,
+        BarcodeFormat.UPC_A,
+        BarcodeFormat.UPC_E,
+        BarcodeFormat.QR_CODE
+      ])
+
+      const codeReader = new BrowserMultiFormatReader(hints)
+      codeReaderRef.current = codeReader
+
+      const videoInputDevices = await codeReader.listVideoInputDevices()
+
+      let selectedDeviceId = videoInputDevices[0]?.deviceId
+      const backCamera = videoInputDevices.find(device =>
+        device.label.toLowerCase().includes('back') ||
+        device.label.toLowerCase().includes('rear') ||
+        device.label.toLowerCase().includes('environment')
+      )
+      if (backCamera) {
+        selectedDeviceId = backCamera.deviceId
+      }
+
+      if (!selectedDeviceId) {
+        throw new Error('Nessuna fotocamera trovata')
+      }
+
+      await codeReader.decodeFromVideoDevice(
+        selectedDeviceId,
+        videoRef.current!,
+        (result) => {
+          if (result) {
+            const barcode = result.getText()
+            console.log('Barcode detected:', barcode)
+            handleBarcodeDetected(barcode)
+          }
+        }
+      )
+    } catch (err) {
+      console.error('Scanner error:', err)
+      setScannerError('Impossibile accedere alla fotocamera')
+      setShowScanner(false)
+    }
+  }
+
+  const stopScanner = useCallback(() => {
+    if (codeReaderRef.current) {
+      codeReaderRef.current.reset()
+      codeReaderRef.current = null
+    }
+    setShowScanner(false)
+    setScannerError(null)
+  }, [])
 
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -148,7 +264,7 @@ function CaricoContent() {
                 onClick={() => {
                   setShowSuccess(false)
                   setSuccessData(null)
-                  fetchProducts()
+                  fetchData()
                 }}
                 className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 focus:ring-emerald-500 shadow-md hover:shadow-lg active:scale-[0.98] w-full"
               >
@@ -176,44 +292,104 @@ function CaricoContent() {
             <ArrowDownToLine className="w-6 h-6" />
             <div>
               <h1 className="text-xl font-bold">Carico Merce</h1>
-              <p className="text-emerald-100 text-sm">Seleziona prodotto</p>
+              <p className="text-emerald-100 text-sm">Scansiona o cerca prodotto</p>
             </div>
           </div>
         </header>
 
         <div className="px-4 -mt-4 space-y-4">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Cerca prodotto..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-12"
-            />
+          {/* Scanner area */}
+          {showScanner ? (
+            <div className="relative h-48 sm:h-56 md:h-64 max-w-md mx-auto bg-gray-900 rounded-2xl overflow-hidden">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-32 h-32 sm:w-40 sm:h-40 border-2 border-cyan-400 rounded-xl relative">
+                  <div className="scanner-line" />
+                </div>
+              </div>
+              {scannerError && (
+                <div className="absolute bottom-3 left-3 right-3 bg-red-500 text-white text-sm px-3 py-2 rounded-lg text-center">
+                  {scannerError}
+                </div>
+              )}
+              <button
+                onClick={stopScanner}
+                className="absolute top-3 right-3 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
+              <div className="absolute top-3 left-3 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                Inquadra il barcode
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={startScanner}
+              className="w-full h-32 sm:h-40 max-w-md mx-auto bg-gray-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-400 hover:bg-gray-700 transition-colors"
+            >
+              <Camera className="w-8 h-8" />
+              <span className="text-sm">Tocca per scansionare barcode</span>
+            </button>
+          )}
+
+          {/* Search */}
+          <div>
+            <p className="text-sm text-gray-500 mb-2">Oppure cerca manualmente</p>
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Nome prodotto o barcode..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-12"
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            {filteredProducts.map(product => (
-              <button
-                key={product.id}
-                onClick={() => setSelectedProduct(product)}
-                className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200 w-full text-left"
-              >
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-emerald-100">
-                  🧴
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-gray-900 truncate">{product.name}</h4>
-                  <p className="text-sm text-gray-500">
-                    {formatCurrency(product.unit_cost)}/pz
-                  </p>
-                </div>
-                <span className="font-bold text-gray-900">
-                  {formatNumber(product.current_stock, 0)}
-                </span>
-              </button>
-            ))}
+          {/* Recent/filtered products */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              {search ? 'Risultati ricerca' : (recentProducts.length > 0 ? 'Caricati di recente' : 'Tutti i prodotti')}
+            </h3>
+            <div className="space-y-2">
+              {(search ? filteredProducts.slice(0, 15) : (recentProducts.length > 0 ? recentProducts : filteredProducts.slice(0, 10))).map(product => (
+                <button
+                  key={product.id}
+                  onClick={() => setSelectedProduct(product)}
+                  className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200 w-full text-left"
+                >
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-emerald-100">
+                    🧴
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-gray-900 truncate">{product.name}</h4>
+                    <p className="text-sm text-gray-500">
+                      {formatCurrency(product.unit_cost)}/pz
+                    </p>
+                  </div>
+                  <span className="font-bold text-gray-900">
+                    {formatNumber(product.current_stock, 0)}
+                  </span>
+                </button>
+              ))}
+
+              {/* Show "all products" link if showing recent */}
+              {!search && recentProducts.length > 0 && (
+                <button
+                  onClick={() => setSearch(' ')}
+                  className="w-full p-3 text-center text-emerald-600 font-medium text-sm hover:bg-emerald-50 rounded-xl transition-colors"
+                >
+                  Mostra tutti i prodotti →
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

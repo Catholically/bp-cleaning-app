@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef, Suspense } from 'react'
+import { useEffect, useState, useRef, Suspense, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import { formatCurrency, formatNumber, cn } from '@/lib/utils'
@@ -17,6 +17,7 @@ import {
   Loader2
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/library'
 
 function ScaricoContent() {
   const { user, profile } = useAuth()
@@ -25,6 +26,7 @@ function ScaricoContent() {
   const productIdFromUrl = searchParams.get('product')
   const cantiereIdFromUrl = searchParams.get('cantiere')
   const [products, setProducts] = useState<Product[]>([])
+  const [recentProducts, setRecentProducts] = useState<Product[]>([])
   const [worksites, setWorksites] = useState<Worksite[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -36,7 +38,9 @@ function ScaricoContent() {
   const [successData, setSuccessData] = useState<any>(null)
   const [showWorksiteSelect, setShowWorksiteSelect] = useState(false)
   const [showScanner, setShowScanner] = useState(false)
+  const [scannerError, setScannerError] = useState<string | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -44,7 +48,7 @@ function ScaricoContent() {
 
     const load = async () => {
       try {
-        const { products: loadedProducts, worksites: loadedWorksites } = await fetchData()
+        const { products: loadedProducts, worksites: loadedWorksites, recentProducts: loadedRecent } = await fetchData()
 
         // Auto-seleziona prodotto se passato via URL
         if (productIdFromUrl && loadedProducts && isMounted) {
@@ -68,17 +72,14 @@ function ScaricoContent() {
 
     load()
 
-    // Cleanup camera on unmount to prevent memory leaks
+    // Cleanup camera and barcode reader on unmount
     return () => {
       isMounted = false
-      if (videoRef.current?.srcObject) {
-        const tracks = (videoRef.current.srcObject as MediaStream).getTracks()
-        tracks.forEach(track => track.stop())
-      }
+      stopScanner()
     }
-  }, [productIdFromUrl, cantiereIdFromUrl])
+  }, [productIdFromUrl, cantiereIdFromUrl, user?.id])
 
-  const fetchData = async (): Promise<{ products: Product[] | null, worksites: Worksite[] | null }> => {
+  const fetchData = async (): Promise<{ products: Product[] | null, worksites: Worksite[] | null, recentProducts: Product[] | null }> => {
     const [productsRes, worksitesRes] = await Promise.all([
       supabase.from('products').select('*').eq('is_active', true).order('name'),
       supabase.from('worksites').select('*').eq('status', 'active').order('code')
@@ -86,7 +87,43 @@ function ScaricoContent() {
 
     if (productsRes.data) setProducts(productsRes.data)
     if (worksitesRes.data) setWorksites(worksitesRes.data)
-    return { products: productsRes.data, worksites: worksitesRes.data }
+
+    // Fetch recent products used by current operator (last 30 days)
+    let recentProductsData: Product[] = []
+    if (user?.id && productsRes.data) {
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+      const { data: recentMovements } = await supabase
+        .from('movements')
+        .select('product_id, created_at')
+        .eq('operator_id', user.id)
+        .eq('type', 'scarico')
+        .gte('created_at', thirtyDaysAgo.toISOString())
+        .order('created_at', { ascending: false })
+
+      if (recentMovements && recentMovements.length > 0) {
+        // Get unique product IDs in order of most recent usage
+        const seenIds = new Set<string>()
+        const uniqueProductIds: string[] = []
+        for (const mov of recentMovements) {
+          if (!seenIds.has(mov.product_id)) {
+            seenIds.add(mov.product_id)
+            uniqueProductIds.push(mov.product_id)
+          }
+        }
+
+        // Map to actual products, keeping the recent order
+        const productsMap = new Map(productsRes.data.map((p: Product) => [p.id, p]))
+        recentProductsData = uniqueProductIds
+          .map(id => productsMap.get(id))
+          .filter((p): p is Product => p !== undefined)
+          .slice(0, 10)
+      }
+    }
+
+    setRecentProducts(recentProductsData)
+    return { products: productsRes.data, worksites: worksitesRes.data, recentProducts: recentProductsData }
   }
 
   const filteredProducts = products.filter(p =>
@@ -148,29 +185,84 @@ function ScaricoContent() {
     }
   }
 
+  const handleBarcodeDetected = useCallback((barcode: string) => {
+    // Find product by barcode
+    const foundProduct = products.find(p => p.barcode === barcode)
+    if (foundProduct) {
+      setSelectedProduct(foundProduct)
+      stopScanner()
+    } else {
+      setScannerError(`Prodotto non trovato: ${barcode}`)
+      setTimeout(() => setScannerError(null), 3000)
+    }
+  }, [products])
+
   const startScanner = async () => {
     setShowScanner(true)
+    setScannerError(null)
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      })
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
+      // Configure barcode reader for common formats
+      const hints = new Map()
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+        BarcodeFormat.EAN_13,
+        BarcodeFormat.EAN_8,
+        BarcodeFormat.CODE_128,
+        BarcodeFormat.CODE_39,
+        BarcodeFormat.UPC_A,
+        BarcodeFormat.UPC_E,
+        BarcodeFormat.QR_CODE
+      ])
+
+      const codeReader = new BrowserMultiFormatReader(hints)
+      codeReaderRef.current = codeReader
+
+      // Get available video devices
+      const videoInputDevices = await codeReader.listVideoInputDevices()
+
+      // Prefer back camera
+      let selectedDeviceId = videoInputDevices[0]?.deviceId
+      const backCamera = videoInputDevices.find(device =>
+        device.label.toLowerCase().includes('back') ||
+        device.label.toLowerCase().includes('rear') ||
+        device.label.toLowerCase().includes('environment')
+      )
+      if (backCamera) {
+        selectedDeviceId = backCamera.deviceId
       }
+
+      if (!selectedDeviceId) {
+        throw new Error('Nessuna fotocamera trovata')
+      }
+
+      // Start continuous decoding
+      await codeReader.decodeFromVideoDevice(
+        selectedDeviceId,
+        videoRef.current!,
+        (result, error) => {
+          if (result) {
+            const barcode = result.getText()
+            console.log('Barcode detected:', barcode)
+            handleBarcodeDetected(barcode)
+          }
+          // Ignore errors during scanning (they're expected when no barcode is visible)
+        }
+      )
     } catch (err) {
-      console.error('Camera error:', err)
-      alert('Impossibile accedere alla fotocamera')
+      console.error('Scanner error:', err)
+      setScannerError('Impossibile accedere alla fotocamera')
       setShowScanner(false)
     }
   }
 
-  const stopScanner = () => {
-    if (videoRef.current?.srcObject) {
-      const tracks = (videoRef.current.srcObject as MediaStream).getTracks()
-      tracks.forEach(track => track.stop())
+  const stopScanner = useCallback(() => {
+    if (codeReaderRef.current) {
+      codeReaderRef.current.reset()
+      codeReaderRef.current = null
     }
     setShowScanner(false)
-  }
+    setScannerError(null)
+  }, [])
 
   if (loading) {
     return (
@@ -253,6 +345,7 @@ function ScaricoContent() {
                 ref={videoRef}
                 autoPlay
                 playsInline
+                muted
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 flex items-center justify-center">
@@ -260,20 +353,28 @@ function ScaricoContent() {
                   <div className="scanner-line" />
                 </div>
               </div>
+              {scannerError && (
+                <div className="absolute bottom-3 left-3 right-3 bg-red-500 text-white text-sm px-3 py-2 rounded-lg text-center">
+                  {scannerError}
+                </div>
+              )}
               <button
                 onClick={stopScanner}
                 className="absolute top-3 right-3 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center"
               >
                 <X className="w-4 h-4 text-white" />
               </button>
+              <div className="absolute top-3 left-3 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                Inquadra il barcode
+              </div>
             </div>
           ) : (
             <button
               onClick={startScanner}
-              className="w-full h-32 sm:h-40 max-w-md mx-auto bg-gray-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-400"
+              className="w-full h-32 sm:h-40 max-w-md mx-auto bg-gray-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-400 hover:bg-gray-700 transition-colors"
             >
               <Camera className="w-8 h-8" />
-              <span className="text-sm">Tocca per attivare fotocamera</span>
+              <span className="text-sm">Tocca per scansionare barcode</span>
             </button>
           )}
 
@@ -295,10 +396,10 @@ function ScaricoContent() {
           {/* Recent/filtered products */}
           <div>
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
-              {search ? 'Risultati ricerca' : 'Prodotti recenti'}
+              {search ? 'Risultati ricerca' : (recentProducts.length > 0 ? 'Usati di recente' : 'Tutti i prodotti')}
             </h3>
             <div className="space-y-2">
-              {filteredProducts.slice(0, 10).map(product => (
+              {(search ? filteredProducts.slice(0, 15) : (recentProducts.length > 0 ? recentProducts : filteredProducts.slice(0, 10))).map(product => (
                 <button
                   key={product.id}
                   onClick={() => setSelectedProduct(product)}
@@ -321,6 +422,16 @@ function ScaricoContent() {
                   </span>
                 </button>
               ))}
+
+              {/* Show "all products" link if showing recent */}
+              {!search && recentProducts.length > 0 && (
+                <button
+                  onClick={() => setSearch(' ')}
+                  className="w-full p-3 text-center text-orange-600 font-medium text-sm hover:bg-orange-50 rounded-xl transition-colors"
+                >
+                  Mostra tutti i prodotti →
+                </button>
+              )}
             </div>
           </div>
         </div>
