@@ -23,6 +23,7 @@ function ScaricoContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const productIdFromUrl = searchParams.get('product')
+  const cantiereIdFromUrl = searchParams.get('cantiere')
   const [products, setProducts] = useState<Product[]>([])
   const [worksites, setWorksites] = useState<Worksite[]>([])
   const [loading, setLoading] = useState(true)
@@ -43,12 +44,21 @@ function ScaricoContent() {
 
     const load = async () => {
       try {
-        const loadedProducts = await fetchData()
+        const { products: loadedProducts, worksites: loadedWorksites } = await fetchData()
+
         // Auto-seleziona prodotto se passato via URL
         if (productIdFromUrl && loadedProducts && isMounted) {
-          const preselected = loadedProducts.find((p: Product) => p.id === productIdFromUrl)
-          if (preselected) {
-            setSelectedProduct(preselected)
+          const preselectedProduct = loadedProducts.find((p: Product) => p.id === productIdFromUrl)
+          if (preselectedProduct) {
+            setSelectedProduct(preselectedProduct)
+          }
+        }
+
+        // Auto-seleziona cantiere se passato via URL
+        if (cantiereIdFromUrl && loadedWorksites && isMounted) {
+          const preselectedWorksite = loadedWorksites.find((w: Worksite) => w.id === cantiereIdFromUrl)
+          if (preselectedWorksite) {
+            setSelectedWorksite(preselectedWorksite)
           }
         }
       } finally {
@@ -66,9 +76,9 @@ function ScaricoContent() {
         tracks.forEach(track => track.stop())
       }
     }
-  }, [productIdFromUrl])
+  }, [productIdFromUrl, cantiereIdFromUrl])
 
-  const fetchData = async (): Promise<Product[] | null> => {
+  const fetchData = async (): Promise<{ products: Product[] | null, worksites: Worksite[] | null }> => {
     const [productsRes, worksitesRes] = await Promise.all([
       supabase.from('products').select('*').eq('is_active', true).order('name'),
       supabase.from('worksites').select('*').eq('status', 'active').order('code')
@@ -76,7 +86,7 @@ function ScaricoContent() {
 
     if (productsRes.data) setProducts(productsRes.data)
     if (worksitesRes.data) setWorksites(worksitesRes.data)
-    return productsRes.data
+    return { products: productsRes.data, worksites: worksitesRes.data }
   }
 
   const filteredProducts = products.filter(p =>
