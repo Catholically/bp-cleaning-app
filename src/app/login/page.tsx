@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { Loader2, Mail, Lock, Eye, EyeOff, User } from 'lucide-react'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -45,373 +47,162 @@ export default function LoginPage() {
         setError('Controlla la tua email per confermare la registrazione')
         setMode('login')
       }
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Si è verificato un errore'
-      setError(errorMessage)
+    } catch (err: any) {
+      setError(err.message || 'Si è verificato un errore')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <>
-      <style jsx global>{`
-        .login-page {
-          --bg1: #0B2A45;
-          --bg2: #0A3F66;
-          --bg3: #0B3557;
-          --bg4: #0A2F4E;
-          --card: #ffffff;
-          --title: #0B2A45;
-          --text: #1F2D3D;
-          --muted: #6B7C8F;
-          --stroke: #1D93CF;
-          --btn1: #26A7DD;
-          --btn2: #0B76B3;
-          --shadow-card: 0 18px 40px rgba(0,0,0,0.28);
-          --shadow-btn: 0 10px 20px rgba(0,0,0,0.22);
-        }
-        .login-page * { box-sizing: border-box; }
-        .login-page {
-          margin: 0;
-          font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-          background: radial-gradient(1200px 900px at 35% 20%, rgba(255,255,255,0.12), transparent 55%),
-                      linear-gradient(135deg, var(--bg1), var(--bg2) 35%, var(--bg3) 70%, var(--bg4));
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-        }
-        .login-frame {
-          width: min(1024px, 100vw);
-          aspect-ratio: 1/1;
-          position: relative;
-          overflow: hidden;
-        }
-        .login-wave {
-          position: absolute;
-          width: 120%;
-          height: 55%;
-          left: -10%;
-          border-radius: 40% 60% 55% 45% / 55% 45% 55% 45%;
-        }
-        .login-wave.w1 {
-          top: 120px;
-          background: rgba(0,0,0,0.18);
-          transform: rotate(-6deg);
-        }
-        .login-wave.w2 {
-          top: 260px;
-          background: rgba(0,0,0,0.10);
-          transform: rotate(10deg);
-        }
-        .login-header {
-          position: absolute;
-          top: 120px;
-          left: 50%;
-          transform: translateX(-50%);
-          text-align: center;
-          width: 100%;
-          padding: 0 24px;
-        }
-        .login-brand {
-          margin-top: 14px;
-          font-size: 54px;
-          font-weight: 700;
-          letter-spacing: 0.3px;
-          text-shadow: 0 10px 18px rgba(0,0,0,0.25);
-        }
-        .login-sub {
-          margin-top: 6px;
-          font-size: 40px;
-          font-weight: 600;
-          opacity: 0.95;
-          text-shadow: 0 10px 18px rgba(0,0,0,0.25);
-        }
-        .login-card {
-          position: absolute;
-          left: 50%;
-          top: 420px;
-          transform: translateX(-50%);
-          width: min(720px, calc(100% - 64px));
-          background: var(--card);
-          border-radius: 28px;
-          box-shadow: var(--shadow-card);
-          color: var(--text);
-          padding: 44px 56px 40px 56px;
-        }
-        .login-card h1 {
-          margin: 0;
-          text-align: center;
-          color: var(--title);
-          font-size: 54px;
-          font-weight: 800;
-        }
-        .login-field {
-          margin-top: 34px;
-          height: 74px;
-          border: 3px solid var(--stroke);
-          border-radius: 16px;
-          display: flex;
-          align-items: center;
-          padding: 0 18px;
-          gap: 14px;
-          background: #ffffff;
-        }
-        .login-field:first-of-type {
-          margin-top: 44px;
-        }
-        .login-field input {
-          border: none;
-          outline: none;
-          width: 100%;
-          font-size: 24px;
-          color: var(--text);
-          background: transparent;
-        }
-        .login-field input::placeholder {
-          color: var(--muted);
-        }
-        .login-icon {
-          width: 28px;
-          height: 28px;
-          flex: 0 0 auto;
-          color: var(--stroke);
-        }
-        .login-icon.right {
-          opacity: 0.95;
-          cursor: pointer;
-        }
-        .login-btn {
-          margin-top: 28px;
-          height: 84px;
-          border: none;
-          width: 100%;
-          border-radius: 26px;
-          background: linear-gradient(180deg, var(--btn1), var(--btn2));
-          color: white;
-          font-size: 34px;
-          font-weight: 800;
-          box-shadow: var(--shadow-btn);
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-        }
-        .login-btn:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-        }
-        .login-footerRow {
-          margin-top: 18px;
-          text-align: center;
-          font-size: 24px;
-          color: var(--text);
-        }
-        .login-footerRow button {
-          color: var(--stroke);
-          background: none;
-          border: none;
-          font-weight: 700;
-          font-size: 24px;
-          cursor: pointer;
-        }
-        .login-copyright {
-          position: absolute;
-          left: 50%;
-          bottom: 36px;
-          transform: translateX(-50%);
-          font-size: 22px;
-          color: rgba(255,255,255,0.85);
-          text-align: center;
-          width: 100%;
-          padding: 0 24px;
-        }
-        .login-sparkle {
-          position: absolute;
-          right: 48px;
-          bottom: 92px;
-          width: 44px;
-          height: 44px;
-          opacity: 0.55;
-          color: white;
-          transform: rotate(10deg);
-          filter: drop-shadow(0 6px 10px rgba(0,0,0,0.25));
-        }
-        .login-error {
-          margin-top: 20px;
-          padding: 16px;
-          border-radius: 12px;
-          font-size: 20px;
-          text-align: center;
-        }
-        .login-error.info {
-          background: #F0F9FF;
-          color: #0369A1;
-          border: 1px solid #BAE6FD;
-        }
-        .login-error.error {
-          background: #FEF2F2;
-          color: #DC2626;
-          border: 1px solid #FECACA;
-        }
-        .login-spinner {
-          width: 32px;
-          height: 32px;
-          border: 3px solid rgba(255,255,255,0.3);
-          border-top-color: white;
-          border-radius: 50%;
-          animation: login-spin 0.8s linear infinite;
-        }
-        @keyframes login-spin {
-          to { transform: rotate(360deg); }
-        }
-        @media (max-width: 720px) {
-          .login-brand { font-size: 40px; }
-          .login-sub { font-size: 30px; }
-          .login-card {
-            height: auto;
-            padding: 34px 22px 28px;
-            top: 390px;
-          }
-          .login-card h1 { font-size: 40px; }
-          .login-field { height: 66px; }
-          .login-field input { font-size: 18px; }
-          .login-btn { height: 76px; font-size: 28px; }
-          .login-footerRow { font-size: 18px; }
-          .login-footerRow button { font-size: 18px; }
-        }
-      `}</style>
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-[#0a1628]">
+      {/* Background with wave pattern */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a1628] via-[#0d2847] to-[#0a1628]" />
+        {/* Wave decorations */}
+        <svg className="absolute bottom-0 left-0 right-0 opacity-10" viewBox="0 0 1440 320" preserveAspectRatio="none">
+          <path fill="#38bdf8" d="M0,192L48,176C96,160,192,128,288,128C384,128,480,160,576,186.7C672,213,768,235,864,213.3C960,192,1056,128,1152,112C1248,96,1344,128,1392,144L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" />
+        </svg>
+        <svg className="absolute top-0 left-0 right-0 opacity-5 rotate-180" viewBox="0 0 1440 320" preserveAspectRatio="none">
+          <path fill="#38bdf8" d="M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,90.7C672,85,768,107,864,128C960,149,1056,171,1152,165.3C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" />
+        </svg>
+      </div>
 
-      <div className="login-page">
-        <div className="login-frame">
-          <div className="login-wave w1"></div>
-          <div className="login-wave w2"></div>
+      {/* Sparkle decoration */}
+      <div className="absolute bottom-8 right-8 text-sky-400/30">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
+        </svg>
+      </div>
 
-          <div className="login-header">
-            {/* Droplet logo */}
-            <svg width="92" height="92" viewBox="0 0 96 96" aria-hidden="true">
-              <defs>
-                <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stopColor="#7FE0FF"/>
-                  <stop offset="1" stopColor="#1AA7E0"/>
-                </linearGradient>
-                <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stopColor="#E7FBFF" stopOpacity="0.9"/>
-                  <stop offset="1" stopColor="#5AD2FF" stopOpacity="0.2"/>
-                </linearGradient>
-              </defs>
-              <path d="M48 6 C40 18 22 36 22 54 C22 72 34 86 48 86 C62 86 74 72 74 54 C74 36 56 18 48 6Z" fill="url(#g1)"/>
-              <path d="M48 16 C43 26 30 40 30 54 C30 66 38 76 48 76 C58 76 66 66 66 54 C66 40 53 26 48 16Z" fill="rgba(0,0,0,0.08)"/>
-              <path d="M38 26 C34 34 30 42 30 52 C30 60 34 68 40 72 C30 58 34 42 44 28Z" fill="url(#g2)"/>
-              <path d="M58 24 C64 34 66 44 64 56 C62 66 54 74 46 76 C58 68 64 58 64 48 C64 40 62 32 58 24Z" fill="rgba(255,255,255,0.35)"/>
-            </svg>
-
-            <div className="login-brand">BP Cleaning srl</div>
-            <div className="login-sub">Multiservice</div>
+      {/* Content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-5 py-8 relative z-10">
+        {/* Logo and brand */}
+        <div className="mb-8 text-center">
+          <div className="w-20 h-20 mx-auto mb-4">
+            <Image
+              src="/logo.svg"
+              alt="BP Cleaning"
+              width={80}
+              height={80}
+              className="drop-shadow-lg"
+            />
           </div>
+          <h1 className="text-3xl font-bold text-white mb-1" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+            BP Cleaning srl
+          </h1>
+          <p className="text-sky-300 text-sm font-medium tracking-wide">Multiservice</p>
+        </div>
 
-          <form className="login-card" onSubmit={handleSubmit}>
-            <h1>{mode === 'login' ? 'Bentornato!' : 'Crea Account'}</h1>
+        {/* Login Card */}
+        <div className="w-full max-w-sm">
+          <div className="bg-white rounded-3xl shadow-2xl p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+              {mode === 'login' ? 'Bentornato!' : 'Crea Account'}
+            </h2>
 
-            {mode === 'signup' && (
-              <div className="login-field">
-                {/* user icon */}
-                <svg className="login-icon" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                </svg>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === 'signup' && (
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-sky-500">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 border-sky-200 focus:border-sky-500 focus:outline-none transition-colors text-gray-700 placeholder-gray-400"
+                    placeholder="Nome completo"
+                    required
+                  />
+                </div>
+              )}
+
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-sky-500">
+                  <Mail className="w-5 h-5" />
+                </div>
                 <input
-                  type="text"
-                  placeholder="Nome completo"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 border-sky-200 focus:border-sky-500 focus:outline-none transition-colors text-gray-700 placeholder-gray-400"
+                  placeholder="Email"
                   required
                 />
               </div>
-            )}
 
-            <div className="login-field">
-              {/* mail icon */}
-              <svg className="login-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="currentColor" d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/>
-              </svg>
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="login-field">
-              {/* lock icon */}
-              <svg className="login-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="currentColor" d="M12 17a2 2 0 0 0 2-2v-2a2 2 0 0 0-4 0v2a2 2 0 0 0 2 2zm6-7h-1V8a5 5 0 0 0-10 0v2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2zM9 10V8a3 3 0 0 1 6 0v2H9z"/>
-              </svg>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-              {/* eye-off / eye icon */}
-              <svg
-                className="login-icon right"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <path fill="currentColor" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-                ) : (
-                  <path fill="currentColor" d="M2 4.27 3.28 3 21 20.72 19.73 22l-3.06-3.06A11.8 11.8 0 0 1 12 20C6 20 1.73 15.61.5 12c.45-1.32 1.27-2.72 2.44-4.06L2 4.27zM12 6c6 0 10.27 4.39 11.5 8-.53 1.56-1.57 3.2-3.12 4.64l-2.02-2.02A5 5 0 0 0 9.4 7.64L7.55 5.79A11.7 11.7 0 0 1 12 6z"/>
-                )}
-              </svg>
-            </div>
-
-            {error && (
-              <div className={`login-error ${error.includes('email') || error.includes('Controlla') ? 'info' : 'error'}`}>
-                {error}
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-sky-500">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-sky-200 focus:border-sky-500 focus:outline-none transition-colors text-gray-700 placeholder-gray-400"
+                  placeholder="Password"
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-sky-400 hover:text-sky-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
-            )}
 
-            <button type="submit" className="login-btn" disabled={loading}>
-              {loading ? (
-                <div className="login-spinner"></div>
-              ) : mode === 'login' ? (
-                'Accedi'
-              ) : (
-                'Registrati'
+              {error && (
+                <div className={`text-sm p-3 rounded-xl ${
+                  error.includes('email') || error.includes('Controlla')
+                    ? 'bg-sky-50 text-sky-700 border border-sky-200'
+                    : 'bg-red-50 text-red-700 border border-red-200'
+                }`}>
+                  {error}
+                </div>
               )}
-            </button>
 
-            <div className="login-footerRow">
-              {mode === 'login' ? 'Non hai un account? ' : 'Hai già un account? '}
               <button
-                type="button"
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 bg-gradient-to-r from-sky-500 to-sky-600 text-white font-semibold rounded-full shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:from-sky-600 hover:to-sky-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : mode === 'login' ? (
+                  'Accedi'
+                ) : (
+                  'Registrati'
+                )}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <span className="text-gray-500 text-sm">
+                {mode === 'login' ? 'Non hai un account? ' : 'Hai già un account? '}
+              </span>
+              <button
                 onClick={() => {
                   setMode(mode === 'login' ? 'signup' : 'login')
                   setError('')
                 }}
+                className="text-sm text-sky-600 hover:text-sky-700 font-semibold transition-colors"
               >
                 {mode === 'login' ? 'Registrati' : 'Accedi'}
               </button>
             </div>
-          </form>
+          </div>
 
-          <div className="login-copyright">© 2026 BP Cleaning srl Multiservice</div>
-
-          {/* sparkle */}
-          <svg className="login-sparkle" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" d="M12 2l1.2 5.1L18 9l-4.8 1.9L12 16l-1.2-5.1L6 9l4.8-1.9L12 2zm8 10l.7 3 2.3 1-2.3 1-.7 3-.7-3-2.3-1 2.3-1 .7-3zM4 14l.7 3 2.3 1-2.3 1-.7 3-.7-3-2.3-1 2.3-1 .7-3z"/>
-          </svg>
+          {/* Footer with reflection effect */}
+          <div className="mt-8 text-center">
+            <p className="text-sky-300/60 text-xs">
+              © {new Date().getFullYear()} BP Cleaning srl Multiservice
+            </p>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }
