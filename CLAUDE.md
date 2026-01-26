@@ -1,4 +1,4 @@
-# CLAUDE.md
+# CLAUDE.md - BP Cleaning App
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -6,7 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 BP Cleaning App is a warehouse management system for cleaning supplies. It tracks products, manages inventory movements (inbound/outbound), and monitors worksite budgets.
 
-**Stack**: Next.js 16 (App Router), React 19, TypeScript, Supabase (PostgreSQL + Auth), Tailwind CSS 4
+**Company**: BP Cleaning
+**Stack**: Next.js 15 (App Router), React 19, TypeScript, Supabase (PostgreSQL + Auth), Tailwind CSS 4
+**URL Produzione**: https://bp-cleaning-app.vercel.app
+**Supabase Project ID**: nesvkpyngurlkmduyywy
 
 ## Commands
 
@@ -26,9 +29,13 @@ src/
 ├── app/                    # Next.js App Router
 │   ├── (app)/              # Protected routes (requires auth)
 │   │   ├── prodotti/       # Product inventory
+│   │   │   ├── page.tsx    # Product list
+│   │   │   ├── [id]/       # Product detail
+│   │   │   └── nuovo/      # Create new product
 │   │   ├── movimenti/      # Movement history + carico/scarico
 │   │   ├── cantieri/       # Worksites
 │   │   ├── report/         # Excel exports
+│   │   ├── etichette/      # Barcode label printing
 │   │   └── impostazioni/   # Admin settings
 │   └── login/              # Public auth page
 ├── components/
@@ -57,11 +64,54 @@ Core entities in `lib/types.ts`:
 - **Supplier** - Product vendors
 - **Profile** - User accounts with role field
 
-### Database
+### Database (Supabase)
 
-- Schema defined in `supabase-schema.sql`
-- RLS (Row Level Security) enabled on all tables
-- Direct Supabase client calls (no custom API layer)
+**Tables**:
+- `products` - 110 prodotti attivi con barcode, SKU, costi, fornitori
+- `suppliers` - 11 fornitori (FOR001-FOR011)
+- `worksites` - 101 cantieri/clienti
+- `movements` - Storico movimenti carico/scarico
+- `profiles` - Utenti collegati a auth.users
+
+**RLS** (Row Level Security) enabled on all tables.
+
+## Codici Prodotto
+
+### SKU (Stock Keeping Unit)
+Formato: `BP-XXX000` dove XXX = categoria
+
+| Categoria | Prefisso | Esempio |
+|-----------|----------|---------|
+| Detergente | DET | BP-DET001 |
+| Sgrassatore | SGR | BP-SGR001 |
+| Disinfettante | DIS | BP-DIS001 |
+| Lucidante | LUC | BP-LUC001 |
+| Deodorante | DEO | BP-DEO001 |
+| Accessorio | ACC | BP-ACC001 |
+| Attrezzatura | ATT | BP-ATT001 |
+| Altro | ALT | BP-ALT001 |
+
+### Barcode
+Formato: `BPCxxxxx` (8 caratteri)
+- Generato automaticamente alla creazione prodotto
+- Sequenziale: BPC00001, BPC00002, ...
+- Attualmente 110 prodotti (BPC00001 - BPC00110)
+
+## Fornitori
+
+| Codice | Nome |
+|--------|------|
+| FOR001 | CleanPro Italia |
+| FOR002 | Detergenti Express |
+| FOR003 | EcoClean Srl |
+| FOR004 | Professional Clean |
+| FOR005 | Hygiene Solutions |
+| FOR006 | S.G. PROFESSIONAL Srls |
+| FOR007 | TORNADO VARESE SRL |
+| FOR008 | ERREMME SRL |
+| FOR009 | DIPRES SRL |
+| FOR010 | SAN GIORGIO MONZA |
+| FOR011 | CINESI MILANO |
 
 ## Key Patterns
 
@@ -71,20 +121,18 @@ Core entities in `lib/types.ts`:
 
 ### Styling
 - Water/ocean theme defined in `globals.css` with CSS variables
-- Primary blue (#0EA5E9), mobile-first design
-- Custom animations: slideUp, fadeIn, shimmer, scanner-line
+- Primary blue (#3B82F6), mobile-first design
+- Custom animations: slideUp, fadeIn, shimmer
 
 ### Utilities (`lib/utils.ts`)
 - `formatCurrency(amount)` - EUR formatting
 - `formatDate(date)` / `formatDateTime(date)` - Italian date format
-- `generateBarcode()` - EAN-13 with check digit (200 prefix)
-- `getStockStatusColor/Label/Bg()` - Stock level indicators
 - `cn()` - Tailwind class merging (clsx + tailwind-merge)
 
 ## Environment Variables
 
 ```
-NEXT_PUBLIC_SUPABASE_URL     # Supabase project URL
+NEXT_PUBLIC_SUPABASE_URL     # https://nesvkpyngurlkmduyywy.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY # Supabase anonymous key
 ```
 
@@ -97,3 +145,15 @@ The application UI is in Italian. Key terms:
 - Scarico = Outbound (sending to worksites)
 - Cantieri = Worksites/Job sites
 - Fornitori = Suppliers
+- Giacenza = Stock level
+- Scorta minima = Minimum stock threshold
+
+## Deploy
+
+```bash
+git add . && git commit -m "descrizione" && git push
+vercel --prod --yes
+```
+
+---
+*Ultimo aggiornamento: Gennaio 2026*
