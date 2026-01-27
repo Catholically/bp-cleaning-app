@@ -532,7 +532,7 @@ export default function UtentiPage() {
         </div>
       </header>
 
-      <div className="px-4 -mt-4 space-y-4 pb-24">
+      <div className="px-4 space-y-4 pb-24 pt-4">
         {/* Superusers */}
         {superusers.length > 0 && (
           <div>
