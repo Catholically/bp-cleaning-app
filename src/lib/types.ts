@@ -220,3 +220,42 @@ export const CATEGORY_ICONS: Record<ProductCategory, string> = {
   attrezzatura: '🛠️',
   altro: '📦'
 }
+
+// Product Types - raggruppamento logico delle categorie
+export type ProductType = 'all' | 'consumabile' | 'attrezzatura'
+
+export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
+  all: 'Tutti i prodotti',
+  consumabile: 'Prodotti Pulizia',
+  attrezzatura: 'Attrezzature/Accessori'
+}
+
+// Mappa categorie -> tipo prodotto
+export const CATEGORY_TO_TYPE: Record<ProductCategory, ProductType> = {
+  detergente: 'consumabile',
+  sgrassatore: 'consumabile',
+  disinfettante: 'consumabile',
+  lucidante: 'consumabile',
+  deodorante: 'consumabile',
+  accessorio: 'attrezzatura',
+  attrezzatura: 'attrezzatura',
+  altro: 'attrezzatura'
+}
+
+// Categorie per tipo (per filtri dropdown)
+export const CATEGORIES_BY_TYPE: Record<ProductType, ProductCategory[]> = {
+  all: ['detergente', 'sgrassatore', 'disinfettante', 'lucidante', 'deodorante', 'accessorio', 'attrezzatura', 'altro'],
+  consumabile: ['detergente', 'sgrassatore', 'disinfettante', 'lucidante', 'deodorante'],
+  attrezzatura: ['accessorio', 'attrezzatura', 'altro']
+}
+
+// Helper function per filtrare prodotti per tipo
+export const filterProductsByType = (products: Product[], type: ProductType): Product[] => {
+  if (type === 'all') return products
+  return products.filter(p => CATEGORY_TO_TYPE[p.category] === type)
+}
+
+// Helper function per ottenere il tipo di un prodotto
+export const getProductType = (category: ProductCategory): ProductType => {
+  return CATEGORY_TO_TYPE[category]
+}

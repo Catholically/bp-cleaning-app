@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, Suspense, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import { formatCurrency, formatNumber, cn } from '@/lib/utils'
-import { Product } from '@/lib/types'
+import { Product, ProductType, CATEGORY_ICONS, filterProductsByType } from '@/lib/types'
 import {
   ArrowDownToLine,
   Search,
@@ -14,7 +14,10 @@ import {
   Loader2,
   Camera,
   X,
-  ShieldAlert
+  ShieldAlert,
+  Package,
+  Sparkles,
+  Wrench
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/library'
@@ -35,6 +38,7 @@ function CaricoContent() {
   const [successData, setSuccessData] = useState<any>(null)
   const [showScanner, setShowScanner] = useState(false)
   const [scannerError, setScannerError] = useState<string | null>(null)
+  const [productType, setProductType] = useState<ProductType>('all')
   const videoRef = useRef<HTMLVideoElement>(null)
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null)
   const supabase = createClient()
@@ -192,7 +196,8 @@ function CaricoContent() {
     setScannerError(null)
   }, [])
 
-  const filteredProducts = products.filter(p =>
+  const typeFilteredProducts = filterProductsByType(products, productType)
+  const filteredProducts = typeFilteredProducts.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     p.barcode?.toLowerCase().includes(search.toLowerCase())
   )
@@ -389,22 +394,62 @@ function CaricoContent() {
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-12"
               />
             </div>
+
+            {/* Product Type Filter */}
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={() => setProductType('all')}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                  productType === 'all'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                )}
+              >
+                <Package className="w-4 h-4" />
+                Tutti
+              </button>
+              <button
+                onClick={() => setProductType('consumabile')}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                  productType === 'consumabile'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                )}
+              >
+                <Sparkles className="w-4 h-4" />
+                Pulizia
+              </button>
+              <button
+                onClick={() => setProductType('attrezzatura')}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                  productType === 'attrezzatura'
+                    ? 'bg-amber-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                )}
+              >
+                <Wrench className="w-4 h-4" />
+                Attrezzature
+              </button>
+            </div>
           </div>
 
           {/* Recent/filtered products */}
           <div>
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
-              {search ? 'Risultati ricerca' : (recentProducts.length > 0 ? 'Caricati di recente' : 'Tutti i prodotti')}
+              {search || productType !== 'all' ? 'Risultati ricerca' : (recentProducts.length > 0 ? 'Caricati di recente' : 'Tutti i prodotti')}
             </h3>
             <div className="space-y-2">
-              {(search ? filteredProducts.slice(0, 15) : (recentProducts.length > 0 ? recentProducts : filteredProducts.slice(0, 10))).map(product => (
+              {(search || productType !== 'all' ? filteredProducts.slice(0, 15) : (recentProducts.length > 0 ? recentProducts : filteredProducts.slice(0, 10))).map(product => (
                 <button
                   key={product.id}
                   onClick={() => setSelectedProduct(product)}
                   className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200 w-full text-left"
                 >
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-emerald-100">
-                    🧴
+                    {CATEGORY_ICONS[product.category]}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-gray-900 truncate">{product.name}</h4>
@@ -419,7 +464,7 @@ function CaricoContent() {
               ))}
 
               {/* Show "all products" link if showing recent */}
-              {!search && recentProducts.length > 0 && (
+              {!search && productType === 'all' && recentProducts.length > 0 && (
                 <button
                   onClick={() => setSearch(' ')}
                   className="w-full p-3 text-center text-emerald-600 font-medium text-sm hover:bg-emerald-50 rounded-xl transition-colors"
@@ -452,7 +497,7 @@ function CaricoContent() {
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Prodotto</p>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-2xl">
-              🧴
+              {CATEGORY_ICONS[selectedProduct.category]}
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-gray-900">{selectedProduct.name}</h3>

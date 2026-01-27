@@ -4,8 +4,8 @@ import { useEffect, useState, useMemo, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import { formatCurrency, formatNumber, cn } from '@/lib/utils'
-import { Product, CATEGORY_ICONS } from '@/lib/types'
-import { Search, Plus, Filter, Package, AlertTriangle, Check } from 'lucide-react'
+import { Product, ProductType, CATEGORY_ICONS, PRODUCT_TYPE_LABELS, filterProductsByType } from '@/lib/types'
+import { Search, Plus, Filter, Package, AlertTriangle, Check, Sparkles, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
@@ -16,6 +16,7 @@ function ProductsContent() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterLow, setFilterLow] = useState(searchParams.get('filter') === 'low')
+  const [productType, setProductType] = useState<ProductType>('all')
   const supabase = createClient()
 
   useEffect(() => {
@@ -50,16 +51,19 @@ function ProductsContent() {
   }
 
   const filteredProducts = useMemo(() => {
-    return products.filter(p => {
-      const matchesSearch = !search || 
+    // Prima filtra per tipo
+    const byType = filterProductsByType(products, productType)
+
+    return byType.filter(p => {
+      const matchesSearch = !search ||
         p.name.toLowerCase().includes(search.toLowerCase()) ||
         p.barcode?.toLowerCase().includes(search.toLowerCase())
-      
+
       const matchesFilter = !filterLow || p.current_stock <= p.min_stock
-      
+
       return matchesSearch && matchesFilter
     })
-  }, [products, search, filterLow])
+  }, [products, search, filterLow, productType])
 
   const getStockStatus = (current: number, min: number) => {
     const ratio = current / min
@@ -100,12 +104,52 @@ function ProductsContent() {
           />
         </div>
 
+        {/* Filtro tipo prodotto */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setProductType('all')}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all',
+              productType === 'all'
+                ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                : 'bg-white text-gray-600 border border-gray-200'
+            )}
+          >
+            <Package className="w-4 h-4" />
+            Tutti
+          </button>
+          <button
+            onClick={() => setProductType('consumabile')}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all',
+              productType === 'consumabile'
+                ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                : 'bg-white text-gray-600 border border-gray-200'
+            )}
+          >
+            <Sparkles className="w-4 h-4" />
+            Pulizia
+          </button>
+          <button
+            onClick={() => setProductType('attrezzatura')}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all',
+              productType === 'attrezzatura'
+                ? 'bg-orange-100 text-orange-700 border border-orange-200'
+                : 'bg-white text-gray-600 border border-gray-200'
+            )}
+          >
+            <Wrench className="w-4 h-4" />
+            Attrezzature
+          </button>
+        </div>
+
         <button
           onClick={() => setFilterLow(!filterLow)}
           className={cn(
             'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all',
-            filterLow 
-              ? 'bg-red-100 text-red-700 border border-red-200' 
+            filterLow
+              ? 'bg-red-100 text-red-700 border border-red-200'
               : 'bg-white text-gray-600 border border-gray-200'
           )}
         >

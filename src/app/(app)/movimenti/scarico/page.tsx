@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, Suspense, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import { formatCurrency, formatNumber, cn } from '@/lib/utils'
-import { Product, Worksite } from '@/lib/types'
+import { Product, Worksite, ProductType, CATEGORY_ICONS, filterProductsByType } from '@/lib/types'
 import {
   ArrowUpFromLine,
   Camera,
@@ -15,7 +15,10 @@ import {
   X,
   ChevronDown,
   Loader2,
-  ShieldAlert
+  ShieldAlert,
+  Package,
+  Sparkles,
+  Wrench
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/library'
@@ -31,6 +34,7 @@ function ScaricoContent() {
   const [worksites, setWorksites] = useState<Worksite[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [productType, setProductType] = useState<ProductType>('all')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [selectedWorksite, setSelectedWorksite] = useState<Worksite | null>(null)
   const [quantity, setQuantity] = useState(1)
@@ -136,7 +140,7 @@ function ScaricoContent() {
     return { products: productsRes.data, worksites: worksitesRes.data, recentProducts: recentProductsData }
   }
 
-  const filteredProducts = products.filter(p =>
+  const filteredProducts = filterProductsByType(products, productType).filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     p.barcode?.toLowerCase().includes(search.toLowerCase())
   )
@@ -431,20 +435,60 @@ function ScaricoContent() {
             </div>
           </div>
 
+          {/* Filtro tipo prodotto */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setProductType('all')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                productType === 'all'
+                  ? 'bg-orange-100 text-orange-700 border border-orange-200'
+                  : 'bg-white text-gray-600 border border-gray-200'
+              )}
+            >
+              <Package className="w-4 h-4" />
+              Tutti
+            </button>
+            <button
+              onClick={() => setProductType('consumabile')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                productType === 'consumabile'
+                  ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                  : 'bg-white text-gray-600 border border-gray-200'
+              )}
+            >
+              <Sparkles className="w-4 h-4" />
+              Pulizia
+            </button>
+            <button
+              onClick={() => setProductType('attrezzatura')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                productType === 'attrezzatura'
+                  ? 'bg-violet-100 text-violet-700 border border-violet-200'
+                  : 'bg-white text-gray-600 border border-gray-200'
+              )}
+            >
+              <Wrench className="w-4 h-4" />
+              Attrezzature
+            </button>
+          </div>
+
           {/* Recent/filtered products */}
           <div>
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
-              {search ? 'Risultati ricerca' : (recentProducts.length > 0 ? 'Usati di recente' : 'Tutti i prodotti')}
+              {search || productType !== 'all' ? 'Risultati' : (recentProducts.length > 0 ? 'Usati di recente' : 'Tutti i prodotti')}
             </h3>
             <div className="space-y-2">
-              {(search ? filteredProducts.slice(0, 15) : (recentProducts.length > 0 ? recentProducts : filteredProducts.slice(0, 10))).map(product => (
+              {(search || productType !== 'all' ? filteredProducts.slice(0, 15) : (recentProducts.length > 0 ? recentProducts : filteredProducts.slice(0, 10))).map(product => (
                 <button
                   key={product.id}
                   onClick={() => setSelectedProduct(product)}
                   className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200 w-full text-left"
                 >
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-orange-100">
-                    🧴
+                    {CATEGORY_ICONS[product.category]}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-gray-900 truncate">{product.name}</h4>
@@ -462,7 +506,7 @@ function ScaricoContent() {
               ))}
 
               {/* Show "all products" link if showing recent */}
-              {!search && recentProducts.length > 0 && (
+              {!search && productType === 'all' && recentProducts.length > 0 && (
                 <button
                   onClick={() => setSearch(' ')}
                   className="w-full p-3 text-center text-orange-600 font-medium text-sm hover:bg-orange-50 rounded-xl transition-colors"
