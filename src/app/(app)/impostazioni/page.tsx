@@ -9,6 +9,7 @@ import {
   LogOut,
   ChevronRight,
   Shield,
+  Briefcase,
   Users,
   Truck,
   Tag
@@ -16,7 +17,7 @@ import {
 import Link from 'next/link'
 
 export default function ImpostazioniPage() {
-  const { profile, isSuperuser, signOut } = useAuth()
+  const { profile, isSuperuser, isManager, isManagerOrSuperuser, signOut } = useAuth()
 
   return (
     <div className="min-h-screen">
@@ -47,6 +48,12 @@ export default function ImpostazioniPage() {
                 Admin
               </span>
             )}
+            {isManager && (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                <Briefcase className="w-3 h-3 mr-1" />
+                Manager
+              </span>
+            )}
           </div>
         </div>
 
@@ -67,30 +74,32 @@ export default function ImpostazioniPage() {
             <ChevronRight className="w-5 h-5 text-gray-300" />
           </Link>
 
-          {isSuperuser && (
-            <>
-              <Link href="/fornitori" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-amber-100">
-                  <Truck className="w-5 h-5 text-amber-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">Fornitori</h4>
-                  <p className="text-sm text-gray-500">Gestisci fornitori prodotti</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-300" />
-              </Link>
+          {/* Fornitori - visible to superuser and manager */}
+          {isManagerOrSuperuser && (
+            <Link href="/fornitori" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-amber-100">
+                <Truck className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-900">Fornitori</h4>
+                <p className="text-sm text-gray-500">Gestisci fornitori prodotti</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-300" />
+            </Link>
+          )}
 
-              <Link href="/utenti" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-blue-100">
-                  <Users className="w-5 h-5 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">Utenti</h4>
-                  <p className="text-sm text-gray-500">Gestisci accessi al sistema</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-300" />
-              </Link>
-            </>
+          {/* Utenti - only superuser */}
+          {isSuperuser && (
+            <Link href="/utenti" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-blue-100">
+                <Users className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-900">Utenti</h4>
+                <p className="text-sm text-gray-500">Gestisci accessi al sistema</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-300" />
+            </Link>
           )}
         </div>
 
@@ -99,27 +108,33 @@ export default function ImpostazioniPage() {
             Report & Export
           </h3>
 
-          <Link href="/report" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-emerald-100">
-              <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-gray-900">Report & Export</h4>
-              <p className="text-sm text-gray-500">Genera report Excel</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-300" />
-          </Link>
+          {/* Report - only superuser (managers cannot see cost reports) */}
+          {isSuperuser && (
+            <Link href="/report" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-emerald-100">
+                <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-900">Report & Export</h4>
+                <p className="text-sm text-gray-500">Genera report Excel</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-300" />
+            </Link>
+          )}
 
-          <Link href="/etichette" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-sky-100">
-              <Tag className="w-5 h-5 text-sky-600" />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-gray-900">Stampa Etichette</h4>
-              <p className="text-sm text-gray-500">PDF etichette con barcode</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-300" />
-          </Link>
+          {/* Etichette - visible to superuser and manager */}
+          {isManagerOrSuperuser && (
+            <Link href="/etichette" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-sky-100">
+                <Tag className="w-5 h-5 text-sky-600" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-900">Stampa Etichette</h4>
+                <p className="text-sm text-gray-500">PDF etichette con barcode</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-300" />
+            </Link>
+          )}
         </div>
 
         {/* Sign out */}

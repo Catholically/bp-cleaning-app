@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDateTime, cn } from '@/lib/utils'
 import { Movement } from '@/lib/types'
@@ -11,7 +12,9 @@ import {
   ArrowUpFromLine,
   Filter,
   ChevronRight,
-  Users
+  Users,
+  ShieldAlert,
+  Loader2
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -19,14 +22,22 @@ export default function MovimentiPage() {
   const [movements, setMovements] = useState<Movement[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'carico' | 'scarico'>('all')
-  const { user, isSuperuser } = useAuth()
+  const { user, isSuperuser, isManager, loading: authLoading } = useAuth()
   const supabase = createClient()
+  const router = useRouter()
+
+  // Redirect managers - they cannot access movements
+  useEffect(() => {
+    if (!authLoading && isManager) {
+      router.replace('/')
+    }
+  }, [isManager, authLoading, router])
 
   useEffect(() => {
-    if (user) {
+    if (user && !isManager) {
       fetchMovements()
     }
-  }, [user, isSuperuser])
+  }, [user, isSuperuser, isManager])
 
   const fetchMovements = async () => {
     let query = supabase
@@ -68,6 +79,34 @@ export default function MovimentiPage() {
     acc[date].push(m)
     return acc
   }, {} as Record<string, Movement[]>)
+
+  // Show loading spinner while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+      </div>
+    )
+  }
+
+  // Show access denied for managers
+  if (isManager) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+          <ShieldAlert className="w-8 h-8 text-red-600" />
+        </div>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Accesso Negato</h1>
+        <p className="text-gray-500 mb-4">Non hai i permessi per accedere ai movimenti.</p>
+        <button
+          onClick={() => router.push('/')}
+          className="px-4 py-2 bg-blue-600 text-white rounded-xl font-medium"
+        >
+          Torna alla Home
+        </button>
+      </div>
+    )
+  }
 
   if (loading) {
     return (

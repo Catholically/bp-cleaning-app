@@ -14,13 +14,14 @@ import {
   Check,
   X,
   ChevronDown,
-  Loader2
+  Loader2,
+  ShieldAlert
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/library'
 
 function ScaricoContent() {
-  const { user, profile } = useAuth()
+  const { user, profile, isManager, loading: authLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const productIdFromUrl = searchParams.get('product')
@@ -43,7 +44,16 @@ function ScaricoContent() {
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null)
   const supabase = createClient()
 
+  // Redirect managers - they cannot access movements
   useEffect(() => {
+    if (!authLoading && isManager) {
+      router.replace('/')
+    }
+  }, [isManager, authLoading, router])
+
+  useEffect(() => {
+    if (isManager) return // Skip data loading for managers
+
     let isMounted = true
 
     const load = async () => {
@@ -77,7 +87,7 @@ function ScaricoContent() {
       isMounted = false
       stopScanner()
     }
-  }, [productIdFromUrl, cantiereIdFromUrl, user?.id])
+  }, [productIdFromUrl, cantiereIdFromUrl, user?.id, isManager])
 
   const fetchData = async (): Promise<{ products: Product[] | null, worksites: Worksite[] | null, recentProducts: Product[] | null }> => {
     const [productsRes, worksitesRes] = await Promise.all([
@@ -263,6 +273,34 @@ function ScaricoContent() {
     setShowScanner(false)
     setScannerError(null)
   }, [])
+
+  // Show loading spinner while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-orange-600 animate-spin" />
+      </div>
+    )
+  }
+
+  // Show access denied for managers
+  if (isManager) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+          <ShieldAlert className="w-8 h-8 text-red-600" />
+        </div>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Accesso Negato</h1>
+        <p className="text-gray-500 mb-4">Non hai i permessi per accedere ai movimenti.</p>
+        <button
+          onClick={() => router.push('/')}
+          className="px-4 py-2 bg-blue-600 text-white rounded-xl font-medium"
+        >
+          Torna alla Home
+        </button>
+      </div>
+    )
+  }
 
   if (loading) {
     return (

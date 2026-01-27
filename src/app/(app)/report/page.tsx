@@ -1,21 +1,60 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { 
-  FileSpreadsheet, 
-  Download, 
-  Package, 
-  Building2, 
+import { useAuth } from '@/components/providers/auth-provider'
+import {
+  FileSpreadsheet,
+  Download,
+  Package,
+  Building2,
   ClipboardList,
   AlertTriangle,
-  Loader2
+  Loader2,
+  ShieldAlert
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
 
 export default function ReportPage() {
   const [loading, setLoading] = useState<string | null>(null)
   const supabase = createClient()
+  const { isSuperuser, loading: authLoading } = useAuth()
+  const router = useRouter()
+
+  // Redirect non-superusers (managers cannot access reports)
+  useEffect(() => {
+    if (!authLoading && !isSuperuser) {
+      router.replace('/')
+    }
+  }, [isSuperuser, authLoading, router])
+
+  // Show access denied while checking or for unauthorized users
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+      </div>
+    )
+  }
+
+  if (!isSuperuser) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+          <ShieldAlert className="w-8 h-8 text-red-600" />
+        </div>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Accesso Negato</h1>
+        <p className="text-gray-500 mb-4">Non hai i permessi per accedere ai report.</p>
+        <button
+          onClick={() => router.push('/')}
+          className="px-4 py-2 bg-blue-600 text-white rounded-xl font-medium"
+        >
+          Torna alla Home
+        </button>
+      </div>
+    )
+  }
 
   const downloadExcel = (data: any[], filename: string) => {
     const ws = XLSX.utils.json_to_sheet(data)
