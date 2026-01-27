@@ -19,13 +19,20 @@ Utenti dell'app
 - `id` (UUID, collegato a auth.users)
 - `email`
 - `full_name`
-- `role` ('user' o 'superuser')
+- `role` ('user', 'manager' o 'superuser')
 
-### 2. suppliers
+### 2. user_worksites
+Assegnazione utenti ai cantieri
+- `id` (UUID)
+- `user_id` (FK → profiles)
+- `worksite_id` (FK → worksites)
+- `created_at`
+
+### 3. suppliers
 Fornitori prodotti
 - `id`, `name`, `contact_email`, `phone`, `notes`
 
-### 3. products
+### 4. products
 Prodotti magazzino
 - `id`, `barcode` (univoco)
 - `name`, `description`
@@ -35,7 +42,7 @@ Prodotti magazzino
 - `cost_per_unit`
 - `supplier_id`
 
-### 4. worksites
+### 5. worksites
 Cantieri/clienti
 - `id`, `code` (es. CANT-001)
 - `name`, `address`
@@ -43,12 +50,76 @@ Cantieri/clienti
 - `monthly_budget`
 - `is_active`
 
-### 5. movements
+### 6. movements
 Movimenti carico/scarico
 - `id`, `type` ('carico' o 'scarico')
 - `product_id`, `worksite_id` (solo per scarico)
 - `quantity`, `unit_cost`, `total_cost` (calcolato auto)
 - `notes`, `created_by`
+
+---
+
+## 👥 Ruoli e Permessi
+
+L'app supporta 3 ruoli utente con permessi differenziati:
+
+### Superuser (Admin)
+Il superuser ha accesso completo a tutte le funzionalità:
+- ✅ Dashboard
+- ✅ Prodotti (visualizza, crea, modifica, elimina)
+- ✅ Movimenti (carico/scarico su tutti i cantieri)
+- ✅ Cantieri (tutti i cantieri)
+- ✅ Fornitori (gestione completa)
+- ✅ Utenti (gestione ruoli e assegnazione cantieri)
+- ✅ Report & Export (tutti i report con costi)
+- ✅ Stampa Etichette
+
+### Manager (Gestore Dati)
+Il manager gestisce i dati anagrafici ma NON vede costi e movimenti:
+- ✅ Dashboard
+- ✅ Prodotti (visualizza prezzi per inserimento)
+- ❌ **Movimenti (NESSUN ACCESSO)**
+- ✅ Cantieri (solo quelli assegnati)
+- ✅ Fornitori (può aggiungere/modificare)
+- ❌ Utenti (nessun accesso)
+- ❌ **Report (NESSUN ACCESSO ai costi)**
+- ✅ Stampa Etichette
+
+### User (Operatore)
+L'operatore registra movimenti sui propri cantieri assegnati:
+- ✅ Dashboard
+- ✅ Prodotti (solo visualizzazione)
+- ✅ Movimenti (solo sui cantieri assegnati)
+- ✅ Cantieri (solo quelli assegnati)
+- ❌ Fornitori (nessun accesso)
+- ❌ Utenti (nessun accesso)
+- ❌ Report (nessun accesso)
+- ❌ Stampa Etichette (nessun accesso)
+
+### Tabella Riepilogativa Permessi
+
+| Funzionalità | Superuser | Manager | User |
+|--------------|:---------:|:-------:|:----:|
+| Dashboard | ✅ | ✅ | ✅ |
+| Prodotti | ✅ CRUD | ✅ R | ✅ R |
+| Movimenti | ✅ Tutti | ❌ | ✅ Assegnati |
+| Cantieri | ✅ Tutti | ✅ Assegnati | ✅ Assegnati |
+| Fornitori | ✅ CRUD | ✅ CR | ❌ |
+| Gestione Utenti | ✅ | ❌ | ❌ |
+| Report/Costi | ✅ | ❌ | ❌ |
+| Etichette | ✅ | ✅ | ❌ |
+
+*CRUD = Create, Read, Update, Delete | R = Read only | CR = Create, Read*
+
+### Assegnazione Cantieri
+
+Il superuser può assegnare cantieri specifici a utenti e manager dalla pagina **Impostazioni → Utenti**:
+1. Selezionare l'utente dalla lista
+2. Cliccare sulla tab "Cantieri"
+3. Selezionare/deselezionare i cantieri da assegnare
+4. Salvare le modifiche
+
+Gli utenti e manager vedranno solo i cantieri a loro assegnati nelle relative sezioni dell'app.
 
 ---
 
@@ -63,16 +134,23 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=[inserisci la chiave anon]
 
 ## 📱 Pagine App
 
-| Route | Descrizione |
-|-------|-------------|
-| `/login` | Autenticazione email/password |
-| `/` | Dashboard home |
-| `/prodotti` | Lista prodotti, filtro scorte basse |
-| `/movimenti` | Storico tutti i movimenti |
-| `/movimenti/carico` | Form carico merce |
-| `/movimenti/scarico` | Form scarico per cantiere |
-| `/cantieri` | Lista cantieri con costi mensili |
-| `/impostazioni` | Settings e logout |
+| Route | Descrizione | Accesso |
+|-------|-------------|---------|
+| `/login` | Autenticazione email/password | Tutti |
+| `/` | Dashboard home | Tutti |
+| `/prodotti` | Lista prodotti, filtro scorte basse | Tutti |
+| `/prodotti/nuovo` | Creazione nuovo prodotto | Superuser |
+| `/prodotti/[id]` | Dettaglio/modifica prodotto | Superuser |
+| `/movimenti` | Storico tutti i movimenti | Superuser, User |
+| `/movimenti/carico` | Form carico merce | Superuser, User |
+| `/movimenti/scarico` | Form scarico per cantiere | Superuser, User |
+| `/cantieri` | Lista cantieri | Tutti (filtrato) |
+| `/cantieri/[id]` | Dettaglio cantiere | Tutti (filtrato) |
+| `/fornitori` | Gestione fornitori | Superuser, Manager |
+| `/utenti` | Gestione utenti e assegnazione cantieri | Solo Superuser |
+| `/report` | Report Excel con costi | Solo Superuser |
+| `/etichette` | Generatore etichette barcode | Superuser, Manager |
+| `/impostazioni` | Menu settings e logout | Tutti |
 
 ---
 
@@ -131,4 +209,4 @@ CREATE POLICY "Enable insert for authentication" ON profiles
 
 ---
 
-*Ultimo aggiornamento: Gennaio 2026*
+*Ultimo aggiornamento: 27 Gennaio 2026*
