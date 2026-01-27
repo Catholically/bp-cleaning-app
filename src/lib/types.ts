@@ -1,4 +1,4 @@
-export type UserRole = 'user' | 'superuser'
+export type UserRole = 'user' | 'superuser' | 'manager'
 
 export interface Profile {
   id: string
@@ -171,6 +171,15 @@ export interface MovementFormData {
   worksite_id?: string
   quantity: number
   notes?: string
+}
+
+export interface UserWorksite {
+  id: string
+  user_id: string
+  worksite_id: string
+  created_at: string
+  worksite?: Worksite
+  user?: Profile
 }
 
 // Category labels for UI

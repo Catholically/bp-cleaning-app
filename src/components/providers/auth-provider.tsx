@@ -10,6 +10,8 @@ interface AuthContextType {
   profile: Profile | null
   loading: boolean
   isSuperuser: boolean
+  isManager: boolean
+  isManagerOrSuperuser: boolean
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
 }
@@ -19,6 +21,8 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   loading: true,
   isSuperuser: false,
+  isManager: false,
+  isManagerOrSuperuser: false,
   signOut: async () => {},
   refreshProfile: async () => {}
 })
@@ -122,12 +126,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.href = '/login'
   }
 
+  const isSuperuser = profile?.role === 'superuser'
+  const isManager = profile?.role === 'manager'
+  const isManagerOrSuperuser = isSuperuser || isManager
+
   return (
     <AuthContext.Provider value={{
       user,
       profile,
       loading,
-      isSuperuser: profile?.role === 'superuser',
+      isSuperuser,
+      isManager,
+      isManagerOrSuperuser,
       signOut,
       refreshProfile
     }}>

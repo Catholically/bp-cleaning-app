@@ -4,36 +4,63 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
-import { Profile, UserRole } from '@/lib/types'
+import { Profile, UserRole, Worksite, UserWorksite } from '@/lib/types'
 import {
   Users,
-  Plus,
   Search,
   X,
   Shield,
   User,
   Edit,
-  Trash2,
   ArrowLeft,
   Save,
   Loader2,
   Mail,
-  Calendar
+  Calendar,
+  Building2,
+  Plus,
+  Check,
+  Briefcase
 } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
+
+const ROLE_CONFIG = {
+  superuser: {
+    label: 'Amministratore',
+    description: 'Accesso completo al sistema',
+    color: 'violet',
+    icon: Shield
+  },
+  manager: {
+    label: 'Data Manager',
+    description: 'Gestisce prodotti, fornitori e cantieri',
+    color: 'amber',
+    icon: Briefcase
+  },
+  user: {
+    label: 'Operatore',
+    description: 'Movimenti sui cantieri assegnati',
+    color: 'blue',
+    icon: User
+  }
+}
 
 export default function UtentiPage() {
   const router = useRouter()
   const { isSuperuser, profile: currentProfile } = useAuth()
   const [profiles, setProfiles] = useState<Profile[]>([])
+  const [worksites, setWorksites] = useState<Worksite[]>([])
+  const [userWorksites, setUserWorksites] = useState<UserWorksite[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null)
   const [saving, setSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState<'info' | 'cantieri'>('info')
+  const [selectedWorksites, setSelectedWorksites] = useState<string[]>([])
+  const [worksiteSearch, setWorksiteSearch] = useState('')
   const supabase = createClient()
 
-  // Form state
   const [formData, setFormData] = useState({
     email: '',
     full_name: '',
@@ -45,17 +72,19 @@ export default function UtentiPage() {
       router.push('/impostazioni')
       return
     }
-    fetchProfiles()
+    fetchData()
   }, [isSuperuser])
 
-  const fetchProfiles = async () => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('role')
-      .order('full_name')
+  const fetchData = async () => {
+    const [profilesRes, worksitesRes, userWorksitesRes] = await Promise.all([
+      supabase.from('profiles').select('*').order('role').order('full_name'),
+      supabase.from('worksites').select('*').eq('status', 'active').order('name'),
+      supabase.from('user_worksites').select('*, worksite:worksites(*), user:profiles(*)')
+    ])
 
-    if (data) setProfiles(data)
+    if (profilesRes.data) setProfiles(profilesRes.data)
+    if (worksitesRes.data) setWorksites(worksitesRes.data)
+    if (userWorksitesRes.data) setUserWorksites(userWorksitesRes.data)
     setLoading(false)
   }
 
@@ -66,50 +95,68 @@ export default function UtentiPage() {
       full_name: profile.full_name,
       role: profile.role
     })
+    const assigned = userWorksites
+      .filter(uw => uw.user_id === profile.id)
+      .map(uw => uw.worksite_id)
+    setSelectedWorksites(assigned)
+    setActiveTab('info')
     setShowForm(true)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.full_name.trim()) {
-      alert('Inserisci il nome completo')
-      return
-    }
+    if (!formData.full_name.trim() || !editingProfile) return
 
     setSaving(true)
 
-    if (editingProfile) {
-      // Update
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: formData.full_name.trim(),
-          role: formData.role
-        })
-        .eq('id', editingProfile.id)
+    // Update profile
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        full_name: formData.full_name.trim(),
+        role: formData.role
+      })
+      .eq('id', editingProfile.id)
 
-      if (error) {
-        alert('Errore durante il salvataggio: ' + error.message)
-      } else {
-        setShowForm(false)
-        fetchProfiles()
-      }
-    }
-
-    setSaving(false)
-  }
-
-  const handleDelete = async (profile: Profile) => {
-    if (profile.id === currentProfile?.id) {
-      alert('Non puoi eliminare te stesso!')
+    if (profileError) {
+      alert('Errore durante il salvataggio: ' + profileError.message)
+      setSaving(false)
       return
     }
 
-    if (!confirm(`Sei sicuro di voler disattivare l'utente "${profile.full_name}"?`)) return
+    // Update worksite assignments (only for user and manager roles)
+    if (formData.role !== 'superuser') {
+      // Delete existing assignments
+      await supabase
+        .from('user_worksites')
+        .delete()
+        .eq('user_id', editingProfile.id)
 
-    // We can't actually delete users from auth, but we can change their role or mark them somehow
-    // For now, we'll just show a message
-    alert('Per eliminare un utente, contatta l\'amministratore di sistema.')
+      // Insert new assignments
+      if (selectedWorksites.length > 0) {
+        const assignments = selectedWorksites.map(wsId => ({
+          user_id: editingProfile.id,
+          worksite_id: wsId
+        }))
+        await supabase.from('user_worksites').insert(assignments)
+      }
+    }
+
+    setShowForm(false)
+    fetchData()
+    setSaving(false)
+  }
+
+  const toggleWorksite = (worksiteId: string) => {
+    setSelectedWorksites(prev =>
+      prev.includes(worksiteId)
+        ? prev.filter(id => id !== worksiteId)
+        : [...prev, worksiteId]
+    )
+  }
+
+  const getUserWorksiteCount = (userId: string) => {
+    return userWorksites.filter(uw => uw.user_id === userId).length
   }
 
   const filteredProfiles = profiles.filter(p => {
@@ -121,7 +168,18 @@ export default function UtentiPage() {
     )
   })
 
+  const filteredWorksites = worksites.filter(w => {
+    if (!worksiteSearch.trim()) return true
+    const query = worksiteSearch.toLowerCase()
+    return (
+      w.name.toLowerCase().includes(query) ||
+      w.code.toLowerCase().includes(query) ||
+      w.city?.toLowerCase().includes(query)
+    )
+  })
+
   const superusers = filteredProfiles.filter(p => p.role === 'superuser')
+  const managers = filteredProfiles.filter(p => p.role === 'manager')
   const users = filteredProfiles.filter(p => p.role === 'user')
 
   if (!isSuperuser) return null
@@ -136,6 +194,9 @@ export default function UtentiPage() {
 
   // Form view
   if (showForm && editingProfile) {
+    const roleConfig = ROLE_CONFIG[formData.role]
+    const RoleIcon = roleConfig.icon
+
     return (
       <div className="min-h-screen pb-24">
         <header className="bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
@@ -150,11 +211,7 @@ export default function UtentiPage() {
           </div>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
-              {formData.role === 'superuser' ? (
-                <Shield className="w-7 h-7" />
-              ) : (
-                <User className="w-7 h-7" />
-              )}
+              <RoleIcon className="w-7 h-7" />
             </div>
             <div>
               <h1 className="text-xl font-bold">{formData.full_name || 'Modifica'}</h1>
@@ -163,60 +220,206 @@ export default function UtentiPage() {
           </div>
         </header>
 
-        <form onSubmit={handleSubmit} className="px-4 -mt-4 space-y-4">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email (non modificabile)
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              disabled
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-500 bg-gray-50"
-            />
-          </div>
-
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nome Completo *
-            </label>
-            <input
-              type="text"
-              value={formData.full_name}
-              onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-              placeholder="Es. Mario Rossi"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
-
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ruolo
-            </label>
-            <select
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-              disabled={editingProfile.id === currentProfile?.id}
-              className="w-full px-3 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+        {/* Tabs */}
+        <div className="px-4 -mt-4 mb-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-1 flex">
+            <button
+              onClick={() => setActiveTab('info')}
+              className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-medium transition-colors ${
+                activeTab === 'info'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
             >
-              <option value="user">Operatore</option>
-              <option value="superuser">Amministratore</option>
-            </select>
-            {editingProfile.id === currentProfile?.id && (
-              <p className="text-xs text-gray-500 mt-2">
-                Non puoi modificare il tuo ruolo
-              </p>
+              Informazioni
+            </button>
+            {formData.role !== 'superuser' && (
+              <button
+                onClick={() => setActiveTab('cantieri')}
+                className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                  activeTab === 'cantieri'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Cantieri
+                {selectedWorksites.length > 0 && (
+                  <span className={`px-2 py-0.5 rounded-full text-xs ${
+                    activeTab === 'cantieri' ? 'bg-white/20' : 'bg-blue-100 text-blue-600'
+                  }`}>
+                    {selectedWorksites.length}
+                  </span>
+                )}
+              </button>
             )}
           </div>
+        </div>
 
-          <div className="bg-blue-50 rounded-2xl border border-blue-100 p-4">
-            <p className="text-sm text-blue-800 font-medium mb-1">Ruoli utente</p>
-            <p className="text-xs text-blue-600">
-              <strong>Operatore</strong>: può fare carichi, scarichi e visualizzare prodotti<br />
-              <strong>Amministratore</strong>: accesso completo al sistema
-            </p>
-          </div>
+        <form onSubmit={handleSubmit} className="px-4 space-y-4">
+          {activeTab === 'info' ? (
+            <>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email (non modificabile)
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  disabled
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-500 bg-gray-50"
+                />
+              </div>
+
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nome Completo *
+                </label>
+                <input
+                  type="text"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  placeholder="Es. Mario Rossi"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Ruolo
+                </label>
+                <div className="space-y-2">
+                  {(Object.entries(ROLE_CONFIG) as [UserRole, typeof ROLE_CONFIG.superuser][]).map(([role, config]) => {
+                    const Icon = config.icon
+                    const isDisabled = editingProfile.id === currentProfile?.id && role !== formData.role
+                    return (
+                      <label
+                        key={role}
+                        className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                          formData.role === role
+                            ? `border-${config.color}-500 bg-${config.color}-50`
+                            : 'border-gray-100 hover:border-gray-200'
+                        } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <input
+                          type="radio"
+                          name="role"
+                          value={role}
+                          checked={formData.role === role}
+                          onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
+                          disabled={isDisabled}
+                          className="sr-only"
+                        />
+                        <div className={`w-10 h-10 rounded-xl bg-${config.color}-100 flex items-center justify-center`}>
+                          <Icon className={`w-5 h-5 text-${config.color}-600`} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{config.label}</p>
+                          <p className="text-xs text-gray-500">{config.description}</p>
+                        </div>
+                        {formData.role === role && (
+                          <div className={`w-6 h-6 rounded-full bg-${config.color}-500 flex items-center justify-center`}>
+                            <Check className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                      </label>
+                    )
+                  })}
+                </div>
+                {editingProfile.id === currentProfile?.id && (
+                  <p className="text-xs text-gray-500 mt-3">
+                    Non puoi modificare il tuo ruolo
+                  </p>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Worksite search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Cerca cantiere..."
+                  value={worksiteSearch}
+                  onChange={(e) => setWorksiteSearch(e.target.value)}
+                  className="w-full pl-10 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                {worksiteSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setWorksiteSearch('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full"
+                  >
+                    <X className="w-4 h-4 text-gray-400" />
+                  </button>
+                )}
+              </div>
+
+              {/* Selected count */}
+              <div className="flex items-center justify-between px-1">
+                <span className="text-sm text-gray-500">
+                  {selectedWorksites.length} cantieri selezionati
+                </span>
+                {selectedWorksites.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedWorksites([])}
+                    className="text-sm text-red-600 font-medium"
+                  >
+                    Rimuovi tutti
+                  </button>
+                )}
+              </div>
+
+              {/* Worksites list */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-h-96 overflow-y-auto">
+                {filteredWorksites.length === 0 ? (
+                  <div className="p-6 text-center text-gray-500">
+                    Nessun cantiere trovato
+                  </div>
+                ) : (
+                  filteredWorksites.map((worksite, index) => {
+                    const isSelected = selectedWorksites.includes(worksite.id)
+                    return (
+                      <button
+                        key={worksite.id}
+                        type="button"
+                        onClick={() => toggleWorksite(worksite.id)}
+                        className={`w-full flex items-center gap-3 p-3 text-left transition-colors ${
+                          index !== filteredWorksites.length - 1 ? 'border-b border-gray-100' : ''
+                        } ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+                      >
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                          isSelected ? 'bg-blue-500' : 'bg-gray-100'
+                        }`}>
+                          {isSelected ? (
+                            <Check className="w-5 h-5 text-white" />
+                          ) : (
+                            <Building2 className="w-5 h-5 text-gray-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 truncate">{worksite.name}</p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {worksite.code} • {worksite.city}
+                          </p>
+                        </div>
+                      </button>
+                    )
+                  })
+                )}
+              </div>
+
+              <div className="bg-amber-50 rounded-2xl border border-amber-100 p-4">
+                <p className="text-sm text-amber-800">
+                  <strong>Nota:</strong> L'utente potrà accedere solo ai cantieri selezionati.
+                  {formData.role === 'user' && ' Gli operatori potranno registrare movimenti solo su questi cantieri.'}
+                  {formData.role === 'manager' && ' I manager potranno modificare solo questi cantieri.'}
+                </p>
+              </div>
+            </>
+          )}
 
           <button
             type="submit"
@@ -241,6 +444,58 @@ export default function UtentiPage() {
   }
 
   // List view
+  const renderUserCard = (profile: Profile, index: number, offsetIndex: number = 0) => {
+    const config = ROLE_CONFIG[profile.role]
+    const Icon = config.icon
+    const worksiteCount = getUserWorksiteCount(profile.id)
+
+    return (
+      <div
+        key={profile.id}
+        className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 animate-slide-up"
+        style={{ animationDelay: `${(offsetIndex + index) * 0.05}s` }}
+      >
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-12 h-12 bg-${config.color}-100 rounded-full flex items-center justify-center`}>
+              <Icon className={`w-6 h-6 text-${config.color}-600`} />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">
+                {profile.full_name}
+                {profile.id === currentProfile?.id && (
+                  <span className="ml-2 text-xs text-violet-600">(tu)</span>
+                )}
+              </h3>
+              <div className="flex items-center gap-1 text-sm text-gray-500">
+                <Mail className="w-3 h-3" />
+                {profile.email}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => handleEdit(profile)}
+            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+          >
+            <Edit className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="flex items-center gap-4 mt-3 ml-15">
+          <div className="flex items-center gap-1 text-xs text-gray-400">
+            <Calendar className="w-3 h-3" />
+            {formatDate(profile.created_at)}
+          </div>
+          {profile.role !== 'superuser' && (
+            <div className="flex items-center gap-1 text-xs text-gray-400">
+              <Building2 className="w-3 h-3" />
+              {worksiteCount} {worksiteCount === 1 ? 'cantiere' : 'cantieri'}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen">
       <header className="bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
@@ -252,7 +507,7 @@ export default function UtentiPage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-xl font-bold">Utenti</h1>
+            <h1 className="text-xl font-bold">Gestione Utenti</h1>
             <p className="text-blue-100 text-sm">{profiles.length} utenti registrati</p>
           </div>
         </div>
@@ -286,43 +541,20 @@ export default function UtentiPage() {
               Amministratori ({superusers.length})
             </h3>
             <div className="space-y-3">
-              {superusers.map((profile, index) => (
-                <div
-                  key={profile.id}
-                  className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 animate-slide-up"
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-violet-100 rounded-full flex items-center justify-center">
-                        <Shield className="w-6 h-6 text-violet-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">
-                          {profile.full_name}
-                          {profile.id === currentProfile?.id && (
-                            <span className="ml-2 text-xs text-violet-600">(tu)</span>
-                          )}
-                        </h3>
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
-                          <Mail className="w-3 h-3" />
-                          {profile.email}
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleEdit(profile)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
-                    >
-                      <Edit className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-400 mt-2 ml-15">
-                    <Calendar className="w-3 h-3" />
-                    Registrato il {formatDate(profile.created_at)}
-                  </div>
-                </div>
-              ))}
+              {superusers.map((profile, index) => renderUserCard(profile, index))}
+            </div>
+          </div>
+        )}
+
+        {/* Managers */}
+        {managers.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <Briefcase className="w-4 h-4" />
+              Data Manager ({managers.length})
+            </h3>
+            <div className="space-y-3">
+              {managers.map((profile, index) => renderUserCard(profile, index, superusers.length))}
             </div>
           </div>
         )}
@@ -335,40 +567,7 @@ export default function UtentiPage() {
               Operatori ({users.length})
             </h3>
             <div className="space-y-3">
-              {users.map((profile, index) => (
-                <div
-                  key={profile.id}
-                  className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 animate-slide-up"
-                  style={{ animationDelay: `${(superusers.length + index) * 0.05}s` }}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                        <User className="w-6 h-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{profile.full_name}</h3>
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
-                          <Mail className="w-3 h-3" />
-                          {profile.email}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(profile)}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
-                      >
-                        <Edit className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-400 mt-2 ml-15">
-                    <Calendar className="w-3 h-3" />
-                    Registrato il {formatDate(profile.created_at)}
-                  </div>
-                </div>
-              ))}
+              {users.map((profile, index) => renderUserCard(profile, index, superusers.length + managers.length))}
             </div>
           </div>
         )}
@@ -391,24 +590,21 @@ export default function UtentiPage() {
           </div>
         )}
 
-        {profiles.length === 0 && !searchQuery && (
-          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4 text-gray-400">
-              <Users className="w-8 h-8" />
-            </div>
-            <p className="text-lg font-semibold text-gray-900 mb-2">Nessun utente</p>
-            <p className="text-sm text-gray-500 max-w-sm">
-              Non ci sono utenti registrati
-            </p>
-          </div>
-        )}
-
         {/* Info box */}
         <div className="bg-blue-50 rounded-2xl border border-blue-100 p-4 mt-6">
-          <p className="text-sm text-blue-800 font-medium mb-1">Come aggiungere nuovi utenti</p>
-          <p className="text-xs text-blue-600">
+          <p className="text-sm text-blue-800 font-medium mb-2">Ruoli disponibili</p>
+          <div className="space-y-2 text-xs text-blue-600">
+            <p><strong>Amministratore</strong>: accesso completo a tutto il sistema</p>
+            <p><strong>Data Manager</strong>: gestisce prodotti, fornitori e cantieri (no report costi)</p>
+            <p><strong>Operatore</strong>: registra movimenti solo sui cantieri assegnati</p>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 rounded-2xl border border-gray-100 p-4">
+          <p className="text-sm text-gray-700 font-medium mb-1">Come aggiungere nuovi utenti</p>
+          <p className="text-xs text-gray-500">
             Per aggiungere un nuovo utente, chiedigli di registrarsi tramite la pagina di login.
-            Dopo la registrazione, potrai modificare il suo ruolo da qui.
+            Dopo la registrazione, potrai modificare il suo ruolo e assegnargli i cantieri da qui.
           </p>
         </div>
       </div>
