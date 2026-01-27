@@ -140,12 +140,15 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=[inserisci la chiave anon]
 | `/` | Dashboard home | Tutti |
 | `/prodotti` | Lista prodotti, filtro scorte basse | Tutti |
 | `/prodotti/nuovo` | Creazione nuovo prodotto | Superuser |
-| `/prodotti/[id]` | Dettaglio/modifica prodotto | Superuser |
+| `/prodotti/[id]` | Dettaglio prodotto | Tutti |
+| `/prodotti/[id]/modifica` | Modifica prodotto | Superuser |
 | `/movimenti` | Storico tutti i movimenti | Superuser, User |
 | `/movimenti/carico` | Form carico merce | Superuser, User |
 | `/movimenti/scarico` | Form scarico per cantiere | Superuser, User |
 | `/cantieri` | Lista cantieri | Tutti (filtrato) |
+| `/cantieri/nuovo` | Creazione nuovo cantiere | Superuser |
 | `/cantieri/[id]` | Dettaglio cantiere | Tutti (filtrato) |
+| `/cantieri/[id]/modifica` | Modifica cantiere | Superuser |
 | `/fornitori` | Gestione fornitori | Superuser, Manager |
 | `/utenti` | Gestione utenti e assegnazione cantieri | Solo Superuser |
 | `/report` | Report Excel con costi | Solo Superuser |
@@ -202,10 +205,23 @@ CREATE POLICY "Enable insert for authentication" ON profiles
 
 ## 📋 Prossimi Step Suggeriti
 1. ✅ Eseguire il trigger SQL per auto-creazione profili
-2. Aggiungere scanner barcode per mobile
-3. Gestione fornitori completa
-4. Report PDF mensili per cantiere
-5. Notifiche scorte basse
+2. ✅ Pagine creazione/modifica cantieri
+3. ✅ Pagina modifica prodotti
+4. ✅ Assegnazione cantieri a utenti (user_worksites)
+5. Aggiungere scanner barcode per mobile
+6. Report PDF mensili per cantiere
+7. Notifiche scorte basse
+
+---
+
+## 👤 Assegnazioni Attuali (Test)
+
+| Utente | Ruolo | Cantieri Assegnati |
+|--------|-------|-------------------|
+| Robyk | manager | 100, 104, 11, 12, 13 |
+| Roberta Parma | user | 14, 16, 17 |
+| Emi | superuser | tutti (no filtro) |
+| Admin BPCleaning | superuser | tutti (no filtro) |
 
 ---
 
