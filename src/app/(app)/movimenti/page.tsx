@@ -120,7 +120,7 @@ export default function MovimentiPage() {
   return (
     <div className="min-h-screen">
       <header className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white px-4 pt-12 pb-6 rounded-b-3xl">
-        <div className="flex items-center gap-3">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
           <Link href="/" className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
             <ChevronLeft className="w-5 h-5" />
           </Link>
@@ -140,7 +140,7 @@ export default function MovimentiPage() {
       </header>
 
       {/* Quick actions */}
-      <div className="px-4 -mt-4 mb-4">
+      <div className="max-w-4xl mx-auto px-4 -mt-4 mb-4">
         <div className="grid grid-cols-2 gap-3">
           <Link href="/movimenti/carico?from=movimenti" className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
             <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
@@ -158,7 +158,7 @@ export default function MovimentiPage() {
       </div>
 
       {/* Filters */}
-      <div className="px-4 mb-4">
+      <div className="max-w-4xl mx-auto px-4 mb-4">
         <div className="flex gap-2">
           {(['all', 'carico', 'scarico'] as const).map(f => (
             <button
@@ -180,7 +180,7 @@ export default function MovimentiPage() {
       </div>
 
       {/* Movements list */}
-      <div className="px-4 space-y-6 pb-6">
+      <div className="max-w-4xl mx-auto px-4 space-y-6 pb-6">
         {Object.entries(groupedMovements).map(([date, items]) => (
           <div key={date}>
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2 capitalize">

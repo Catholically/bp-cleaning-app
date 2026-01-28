@@ -118,7 +118,7 @@ function ProductsContent() {
   return (
     <div className="min-h-screen">
       <header className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white px-4 pt-12 pb-6 rounded-b-3xl">
-        <div className="flex items-center gap-3">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
           <Link href="/" className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
             <ChevronLeft className="w-5 h-5" />
           </Link>
@@ -130,7 +130,7 @@ function ProductsContent() {
         </div>
       </header>
 
-      <div className="px-4 -mt-4 space-y-3">
+      <div className="max-w-4xl mx-auto px-4 -mt-4 space-y-3">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -231,7 +231,7 @@ function ProductsContent() {
         </button>
       </div>
 
-      <div className="px-4 mt-4 space-y-3 pb-6">
+      <div className="max-w-4xl mx-auto px-4 mt-4 space-y-3 pb-6">
         {filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
             <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4 text-gray-400">

@@ -316,7 +316,7 @@ function CaricoContent() {
     return (
       <div className="min-h-screen">
         <header className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
-          <div className="flex items-center gap-3">
+          <div className="max-w-4xl mx-auto flex items-center gap-3">
             <ArrowDownToLine className="w-6 h-6" />
             <div>
               <h1 className="text-xl font-bold">Carico Merce</h1>
@@ -325,7 +325,7 @@ function CaricoContent() {
           </div>
         </header>
 
-        <div className="px-4 -mt-4">
+        <div className="max-w-4xl mx-auto px-4 -mt-4">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
             <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="w-10 h-10 text-emerald-600" />
@@ -370,7 +370,7 @@ function CaricoContent() {
     return (
       <div className="min-h-screen">
         <header className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
-          <div className="flex items-center gap-3">
+          <div className="max-w-4xl mx-auto flex items-center gap-3">
             <Link href={backUrl} className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
               <ChevronLeft className="w-5 h-5" />
             </Link>
@@ -382,7 +382,7 @@ function CaricoContent() {
           </div>
         </header>
 
-        <div className="px-4 -mt-4 space-y-4">
+        <div className="max-w-4xl mx-auto px-4 -mt-4 space-y-4">
           {/* Scanner area */}
           {showScanner ? (
             <div className="relative h-48 sm:h-56 md:h-64 max-w-md mx-auto bg-gray-900 rounded-2xl overflow-hidden">
@@ -560,7 +560,7 @@ function CaricoContent() {
   return (
     <div className="min-h-screen">
       <header className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
-        <div className="flex items-center gap-3">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
           <ArrowDownToLine className="w-6 h-6" />
           <div>
             <h1 className="text-xl font-bold">Carico Merce</h1>
@@ -569,7 +569,7 @@ function CaricoContent() {
         </div>
       </header>
 
-      <div className="px-4 -mt-4 space-y-4">
+      <div className="max-w-4xl mx-auto px-4 -mt-4 space-y-4">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Prodotto</p>
           <div className="flex items-center gap-3">

@@ -205,6 +205,7 @@ function FornitoriContent() {
     return (
       <div className="min-h-screen pb-24">
         <header className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
+          <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <button
               onClick={() => setShowForm(false)}
@@ -227,9 +228,10 @@ function FornitoriContent() {
               <p className="text-amber-100 text-sm font-mono">{formData.code}</p>
             </div>
           </div>
+          </div>
         </header>
 
-        <form onSubmit={handleSubmit} className="px-4 -mt-4 space-y-4">
+        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto px-4 -mt-4 space-y-4">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Nome Fornitore *
@@ -337,6 +339,7 @@ function FornitoriContent() {
   return (
     <div className="min-h-screen">
       <header className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
+        <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-3 mb-4">
           <Link
             href={backUrl}
@@ -368,9 +371,10 @@ function FornitoriContent() {
             </button>
           )}
         </div>
+        </div>
       </header>
 
-      <div className="px-4 -mt-4 space-y-3 pb-24">
+      <div className="max-w-4xl mx-auto px-4 -mt-4 space-y-3 pb-24">
         {filteredSuppliers.map((supplier, index) => (
           <div
             key={supplier.id}

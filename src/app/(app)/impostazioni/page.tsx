@@ -25,7 +25,7 @@ export default function ImpostazioniPage() {
   return (
     <div className="min-h-screen">
       <header className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white px-4 pt-12 pb-6 rounded-b-3xl">
-        <div className="flex items-center gap-3">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
           <Link href="/" className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
             <ChevronLeft className="w-5 h-5" />
           </Link>
@@ -37,7 +37,7 @@ export default function ImpostazioniPage() {
         </div>
       </header>
 
-      <div className="px-4 -mt-4 space-y-4 pb-6">
+      <div className="max-w-4xl mx-auto px-4 -mt-4 space-y-4 pb-6">
         {/* User profile card */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
           <div className="flex items-center gap-3">

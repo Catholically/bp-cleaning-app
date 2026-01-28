@@ -145,6 +145,7 @@ export default function HomePage() {
     <div className="min-h-screen">
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white px-4 pt-12 pb-6 rounded-b-3xl">
+        <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
             <Sparkles className="w-5 h-5" />
@@ -158,10 +159,11 @@ export default function HomePage() {
         <p className="text-blue-100">
           {greeting()}, <span className="text-white font-semibold">{profile?.full_name?.split(' ')[0]}</span>
         </p>
+        </div>
       </header>
 
       {/* Stats Cards */}
-      <div className="px-4 -mt-4">
+      <div className="max-w-4xl mx-auto px-4 -mt-4">
         <div className="grid grid-cols-2 gap-3">
           <div className="stat-card animate-slide-up">
             <div className="flex items-center justify-between">
@@ -182,7 +184,7 @@ export default function HomePage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="px-4 mt-6">
+      <div className="max-w-4xl mx-auto px-4 mt-6">
         <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
           Azioni Rapide
         </h2>
@@ -235,7 +237,7 @@ export default function HomePage() {
 
       {/* Low Stock Alert */}
       {lowStock.length > 0 && (
-        <div className="px-4 mt-6 mb-6">
+        <div className="max-w-4xl mx-auto px-4 mt-6 mb-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
               Scorte Basse

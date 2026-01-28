@@ -205,6 +205,7 @@ function UtentiContent() {
     return (
       <div className="min-h-screen pb-24">
         <header className="bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
+          <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <button
               onClick={() => setShowForm(false)}
@@ -223,10 +224,11 @@ function UtentiContent() {
               <p className="text-blue-100 text-sm">{formData.email}</p>
             </div>
           </div>
+          </div>
         </header>
 
         {/* Tabs */}
-        <div className="px-4 -mt-4 mb-4">
+        <div className="max-w-4xl mx-auto px-4 -mt-4 mb-4">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-1 flex">
             <button
               onClick={() => setActiveTab('info')}
@@ -260,7 +262,7 @@ function UtentiContent() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-4 space-y-4">
+        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto px-4 space-y-4">
           {activeTab === 'info' ? (
             <>
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
@@ -504,6 +506,7 @@ function UtentiContent() {
   return (
     <div className="min-h-screen">
       <header className="bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
+        <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-3 mb-4">
           <Link
             href={backUrl}
@@ -535,9 +538,10 @@ function UtentiContent() {
             </button>
           )}
         </div>
+        </div>
       </header>
 
-      <div className="px-4 space-y-4 pb-24 pt-4">
+      <div className="max-w-4xl mx-auto px-4 space-y-4 pb-24 pt-4">
         {/* Superusers */}
         {superusers.length > 0 && (
           <div>
