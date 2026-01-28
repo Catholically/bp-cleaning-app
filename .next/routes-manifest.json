@@ -30,12 +30,28 @@
       "namedRegex": "^/cantieri/(?<nxtPid>[^/]+?)(?:/)?$"
     },
     {
+      "page": "/cantieri/[id]/modifica",
+      "regex": "^/cantieri/([^/]+?)/modifica(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/cantieri/(?<nxtPid>[^/]+?)/modifica(?:/)?$"
+    },
+    {
       "page": "/prodotti/[id]",
       "regex": "^/prodotti/([^/]+?)(?:/)?$",
       "routeKeys": {
         "nxtPid": "nxtPid"
       },
       "namedRegex": "^/prodotti/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/prodotti/[id]/modifica",
+      "regex": "^/prodotti/([^/]+?)/modifica(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/prodotti/(?<nxtPid>[^/]+?)/modifica(?:/)?$"
     }
   ],
   "staticRoutes": [
@@ -64,6 +80,12 @@
       "namedRegex": "^/cantieri(?:/)?$"
     },
     {
+      "page": "/cantieri/nuovo",
+      "regex": "^/cantieri/nuovo(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/cantieri/nuovo(?:/)?$"
+    },
+    {
       "page": "/etichette",
       "regex": "^/etichette(?:/)?$",
       "routeKeys": {},
@@ -74,6 +96,18 @@
       "regex": "^/favicon\\.ico(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/fornitori",
+      "regex": "^/fornitori(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/fornitori(?:/)?$"
+    },
+    {
+      "page": "/icon.png",
+      "regex": "^/icon\\.png(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/icon\\.png(?:/)?$"
     },
     {
       "page": "/impostazioni",
@@ -112,10 +146,22 @@
       "namedRegex": "^/prodotti(?:/)?$"
     },
     {
+      "page": "/prodotti/nuovo",
+      "regex": "^/prodotti/nuovo(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/prodotti/nuovo(?:/)?$"
+    },
+    {
       "page": "/report",
       "regex": "^/report(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/report(?:/)?$"
+    },
+    {
+      "page": "/utenti",
+      "regex": "^/utenti(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/utenti(?:/)?$"
     }
   ],
   "dataRoutes": [],

@@ -1,11 +1,12 @@
 var R=require("../../../chunks/ssr/[turbopack]_runtime.js")("server/app/(app)/cantieri/page.js")
-R.c("server/chunks/ssr/[root-of-the-server]__dcccf66d._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__1c609b3c._.js")
 R.c("server/chunks/ssr/_07720ad9._.js")
-R.c("server/chunks/ssr/_43a725cd._.js")
+R.c("server/chunks/ssr/_a6523ff8._.js")
 R.c("server/chunks/ssr/[root-of-the-server]__06d33efc._.js")
 R.c("server/chunks/ssr/[root-of-the-server]__ec08af90._.js")
 R.c("server/chunks/ssr/node_modules_next_dist_81959fb0._.js")
 R.c("server/chunks/ssr/src_app_5b2047f8._.js")
+R.c("server/chunks/ssr/src_app_0c8a77b8._.js")
 R.c("server/chunks/ssr/node_modules_next_dist_client_components_builtin_global-error_ece394eb.js")
 R.c("server/chunks/ssr/src_d650f1b6._.js")
 R.c("server/chunks/ssr/node_modules_next_dist_client_components_9774470f._.js")
@@ -13,5 +14,5 @@ R.c("server/chunks/ssr/node_modules_next_dist_client_components_builtin_forbidde
 R.c("server/chunks/ssr/node_modules_next_dist_client_components_builtin_unauthorized_15817684.js")
 R.c("server/chunks/ssr/src_4dbd034a._.js")
 R.c("server/chunks/ssr/_next-internal_server_app_(app)_cantieri_page_actions_a124e4b9.js")
-R.m(59048)
-module.exports=R.m(59048).exports
+R.m(8345)
+module.exports=R.m(8345).exports

@@ -1,0 +1,3 @@
+{
+  "/(app)/cantieri/[id]/modifica/page": "app/(app)/cantieri/[id]/modifica/page.js"
+}

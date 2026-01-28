@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(app)/layout,_N_T_/(app)/cantieri/layout,_N_T_/(app)/cantieri/nuovo/layout,_N_T_/(app)/cantieri/nuovo/page,_N_T_/cantieri/nuovo"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KGFwcCk/cantieri/nuovo/__PAGE__",
+    "/!KGFwcCk/cantieri/nuovo",
+    "/!KGFwcCk/cantieri",
+    "/!KGFwcCk",
+    "/_index",
+    "/_head"
+  ]
+}

@@ -62,11 +62,111 @@ function ReportContent() {
     )
   }
 
-  const downloadExcel = (data: any[], filename: string) => {
+  // Generate datetime string for filename: YYYY-MM-DD_HH-mm
+  const getDateTimeString = () => {
+    const now = new Date()
+    const date = now.toISOString().split('T')[0]
+    const time = now.toTimeString().slice(0, 5).replace(':', '-')
+    return `${date}_${time}`
+  }
+
+  // Style configuration for Excel
+  const headerStyle = {
+    font: { bold: true, color: { rgb: 'FFFFFF' } },
+    fill: { fgColor: { rgb: '2563EB' } }, // Blue-600
+    alignment: { horizontal: 'center', vertical: 'center' },
+    border: {
+      top: { style: 'thin', color: { rgb: '1E40AF' } },
+      bottom: { style: 'thin', color: { rgb: '1E40AF' } },
+      left: { style: 'thin', color: { rgb: '1E40AF' } },
+      right: { style: 'thin', color: { rgb: '1E40AF' } }
+    }
+  }
+
+  const cellBorder = {
+    top: { style: 'thin', color: { rgb: 'E5E7EB' } },
+    bottom: { style: 'thin', color: { rgb: 'E5E7EB' } },
+    left: { style: 'thin', color: { rgb: 'E5E7EB' } },
+    right: { style: 'thin', color: { rgb: 'E5E7EB' } }
+  }
+
+  const downloadExcel = (data: any[], filename: string, conditionalColumn?: string) => {
     const ws = XLSX.utils.json_to_sheet(data)
+
+    // Get the range of the worksheet
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1')
+    const numCols = range.e.c + 1
+    const numRows = range.e.r + 1
+
+    // Calculate column widths based on content
+    const colWidths: { wch: number }[] = []
+    const headers = Object.keys(data[0] || {})
+
+    headers.forEach((header, colIndex) => {
+      let maxWidth = header.length
+      data.forEach(row => {
+        const cellValue = String(row[header] || '')
+        maxWidth = Math.max(maxWidth, cellValue.length)
+      })
+      colWidths.push({ wch: Math.min(maxWidth + 2, 50) })
+    })
+    ws['!cols'] = colWidths
+
+    // Apply styles to header row
+    for (let col = 0; col <= range.e.c; col++) {
+      const cellRef = XLSX.utils.encode_cell({ r: 0, c: col })
+      if (ws[cellRef]) {
+        ws[cellRef].s = headerStyle
+      }
+    }
+
+    // Apply styles to data cells
+    for (let row = 1; row <= range.e.r; row++) {
+      for (let col = 0; col <= range.e.c; col++) {
+        const cellRef = XLSX.utils.encode_cell({ r: row, c: col })
+        if (ws[cellRef]) {
+          const cellStyle: any = {
+            border: cellBorder,
+            alignment: { vertical: 'center' }
+          }
+
+          // Alternate row colors
+          if (row % 2 === 0) {
+            cellStyle.fill = { fgColor: { rgb: 'F9FAFB' } } // Gray-50
+          }
+
+          // Conditional formatting for status columns
+          if (conditionalColumn) {
+            const colIndex = headers.indexOf(conditionalColumn)
+            if (col === colIndex) {
+              const cellValue = ws[cellRef].v
+              if (cellValue === 'RIORDINO' || cellValue === 'SCARICO') {
+                cellStyle.fill = { fgColor: { rgb: 'FEE2E2' } } // Red-100
+                cellStyle.font = { color: { rgb: 'DC2626' }, bold: true } // Red-600
+              } else if (cellValue === 'OK' || cellValue === 'CARICO') {
+                cellStyle.fill = { fgColor: { rgb: 'DCFCE7' } } // Green-100
+                cellStyle.font = { color: { rgb: '16A34A' }, bold: true } // Green-600
+              }
+            }
+          }
+
+          // Right-align numeric columns (€, quantities)
+          const header = headers[col]
+          if (header && (header.includes('€') || header.includes('Qtà') || header.includes('Quantità') || header === 'Giacenza' || header === 'Scorta Min.' || header === 'Da Ordinare' || header === 'N. Movimenti')) {
+            cellStyle.alignment = { horizontal: 'right', vertical: 'center' }
+          }
+
+          ws[cellRef].s = cellStyle
+        }
+      }
+    }
+
+    // Freeze header row
+    ws['!freeze'] = { xSplit: 0, ySplit: 1, topLeftCell: 'A2', activePane: 'bottomLeft', state: 'frozen' }
+
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Dati')
-    XLSX.writeFile(wb, `${filename}_${new Date().toISOString().split('T')[0]}.xlsx`)
+    XLSX.writeFile(wb, `${filename}_${getDateTimeString()}.xlsx`)
   }
 
   const exportInventario = async () => {
@@ -92,7 +192,7 @@ function ReportContent() {
           'Valore €': (p.current_stock * p.unit_cost).toFixed(2),
           'Stato': p.current_stock <= p.min_stock ? 'RIORDINO' : 'OK'
         }))
-        downloadExcel(formatted, 'inventario')
+        downloadExcel(formatted, 'inventario', 'Stato')
       }
     } catch (error) {
       console.error(error)
@@ -183,7 +283,7 @@ function ReportContent() {
           'Cantiere': (m as any).worksite ? `${(m as any).worksite.code} - ${(m as any).worksite.name}` : '',
           'Operatore': (m as any).operator?.full_name || ''
         }))
-        downloadExcel(formatted, 'movimenti')
+        downloadExcel(formatted, 'movimenti', 'Tipo')
       }
     } catch (error) {
       console.error(error)
