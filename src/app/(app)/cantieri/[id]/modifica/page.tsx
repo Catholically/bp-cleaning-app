@@ -206,29 +206,31 @@ export default function ModificaCantiereePage() {
     <div className="min-h-screen pb-24">
       {/* Header */}
       <header className="bg-gradient-to-r from-violet-500 via-purple-600 to-indigo-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
-        <div className="flex items-center gap-3 mb-4">
-          <button
-            onClick={() => router.back()}
-            className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <span className="text-purple-100">Modifica Cantiere</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
-            <Building2 className="w-7 h-7" />
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => router.back()}
+              className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <span className="text-purple-100">Modifica Cantiere</span>
           </div>
-          <div>
-            <span className="bg-white/20 px-2 py-0.5 rounded text-xs font-medium">
-              {code}
-            </span>
-            <h1 className="text-xl font-bold mt-1">{worksite.name}</h1>
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
+              <Building2 className="w-7 h-7" />
+            </div>
+            <div>
+              <span className="bg-white/20 px-2 py-0.5 rounded text-xs font-medium">
+                {code}
+              </span>
+              <h1 className="text-xl font-bold mt-1">{worksite.name}</h1>
+            </div>
           </div>
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="px-4 -mt-4 space-y-4">
+      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto px-4 -mt-4 space-y-4">
         {/* Codice (readonly) */}
         <div className="bg-gray-50 rounded-2xl border border-gray-200 p-4">
           <label className="block text-sm font-medium text-gray-500 mb-2">

@@ -186,43 +186,45 @@ export default function CantiereDetailPage() {
     <div className="min-h-screen pb-24">
       {/* Header */}
       <header className="bg-gradient-to-r from-violet-500 via-purple-600 to-indigo-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
-        <div className="flex items-center gap-3 mb-4">
-          <button
-            onClick={() => router.back()}
-            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="flex-1">
-            <span className="bg-white/20 px-2 py-0.5 rounded text-xs font-medium">
-              {worksite.code}
-            </span>
-            <h1 className="text-xl font-bold mt-1">{worksite.name}</h1>
-          </div>
-          {isSuperuser && (
-            <Link
-              href={`/cantieri/${worksite.id}/modifica`}
-              className="p-2 hover:bg-white/10 rounded-full transition-colors"
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => router.back()}
+              className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
             >
-              <Edit2 className="w-5 h-5" />
-            </Link>
-          )}
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
-            <p className="text-purple-100 text-xs">Questo mese</p>
-            <p className="text-2xl font-bold">{formatCurrency(currentMonthSpent)}</p>
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div className="flex-1">
+              <span className="bg-white/20 px-2 py-0.5 rounded text-xs font-medium">
+                {worksite.code}
+              </span>
+              <h1 className="text-xl font-bold mt-1">{worksite.name}</h1>
+            </div>
+            {isSuperuser && (
+              <Link
+                href={`/cantieri/${worksite.id}/modifica`}
+                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+              >
+                <Edit2 className="w-5 h-5" />
+              </Link>
+            )}
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
-            <p className="text-purple-100 text-xs">Totale storico</p>
-            <p className="text-2xl font-bold">{formatCurrency(totalSpent)}</p>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
+              <p className="text-purple-100 text-xs">Questo mese</p>
+              <p className="text-2xl font-bold">{formatCurrency(currentMonthSpent)}</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
+              <p className="text-purple-100 text-xs">Totale storico</p>
+              <p className="text-2xl font-bold">{formatCurrency(totalSpent)}</p>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="px-4 -mt-4 space-y-4">
+      <div className="max-w-4xl mx-auto px-4 -mt-4 space-y-4">
         {/* Info Card - Collapsible */}
         <details className="bg-white rounded-2xl border border-gray-100 shadow-sm">
           <summary className="p-4 cursor-pointer flex items-center gap-2 font-semibold text-gray-900">

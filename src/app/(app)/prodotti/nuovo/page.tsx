@@ -166,27 +166,29 @@ export default function NuovoProdottoPage() {
     <div className="min-h-screen pb-24">
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white px-4 pt-12 pb-6 rounded-b-3xl">
-        <div className="flex items-center gap-3 mb-4">
-          <button
-            onClick={() => router.back()}
-            className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <span className="text-blue-100">Nuovo Prodotto</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
-            <Package className="w-7 h-7" />
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => router.back()}
+              className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <span className="text-blue-100">Nuovo Prodotto</span>
           </div>
-          <div>
-            <h1 className="text-xl font-bold">Aggiungi Prodotto</h1>
-            <p className="text-blue-100 text-sm">Compila i dettagli</p>
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
+              <Package className="w-7 h-7" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">Aggiungi Prodotto</h1>
+              <p className="text-blue-100 text-sm">Compila i dettagli</p>
+            </div>
           </div>
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="px-4 -mt-4 space-y-4">
+      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto px-4 -mt-4 space-y-4">
         {/* Nome */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">

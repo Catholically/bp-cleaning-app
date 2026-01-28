@@ -97,27 +97,29 @@ export default function ProductDetailPage() {
     <div className="min-h-screen pb-24">
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white px-4 pt-12 pb-6 rounded-b-3xl">
-        <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => router.back()} className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <span className="text-blue-100">Dettaglio Prodotto</span>
-        </div>
-        <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-3xl">
-            {CATEGORY_ICONS[product.category]}
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-3 mb-4">
+            <button onClick={() => router.back()} className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <span className="text-blue-100">Dettaglio Prodotto</span>
           </div>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold truncate">{product.name}</h1>
-            <p className="text-blue-100 text-sm">{CATEGORY_LABELS[product.category]}</p>
-            {product.sku && (
-              <p className="text-blue-200 text-xs font-mono mt-1">{product.sku}</p>
-            )}
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-3xl">
+              {CATEGORY_ICONS[product.category]}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl font-bold truncate">{product.name}</h1>
+              <p className="text-blue-100 text-sm">{CATEGORY_LABELS[product.category]}</p>
+              {product.sku && (
+                <p className="text-blue-200 text-xs font-mono mt-1">{product.sku}</p>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="px-4 -mt-4 space-y-4">
+      <div className="max-w-4xl mx-auto px-4 -mt-4 space-y-4">
         {/* Stock Status Card */}
         <div className={cn('p-4 rounded-2xl border-2', status.bg)}>
           <div className="flex items-center justify-between">
