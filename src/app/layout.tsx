@@ -6,13 +6,6 @@ export const metadata: Metadata = {
   title: "BP Cleaning",
   description: "Gestione magazzino prodotti pulizia",
   manifest: "/manifest.json",
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
-    ],
-    apple: "/icon-192.png",
-  },
   openGraph: {
     title: "BP Cleaning",
     description: "Gestione magazzino prodotti pulizia",
@@ -57,9 +50,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it">
-      <head>
-        <link rel="apple-touch-icon" sizes="180x180" href="/icon-192.png" />
-      </head>
+      <head />
       <body className="antialiased">
         <AuthProvider>
           {children}
