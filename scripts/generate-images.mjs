@@ -7,37 +7,22 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(__dirname, '..', 'public');
 
 async function generateOGImage() {
-  // Create OG image 1200x630 with centered smaller logo
-  const logoSize = 200;
+  // Create OG image 1200x630 with just the droplet logo and minimal white border
+  const width = 1200;
+  const height = 630;
+
+  // Logo fills most of the height with minimal padding
+  const padding = 40; // minimal border
+  const logoSize = height - (padding * 2); // ~550px
+
   const logoBuffer = await sharp(join(publicDir, 'icon-512.png'))
     .resize(logoSize, logoSize)
     .toBuffer();
 
-  // Create background with gradient effect (solid color for simplicity)
-  const width = 1200;
-  const height = 630;
-
-  // Create a gradient-like background using SVG
+  // Create white background
   const svgBackground = `
     <svg width="${width}" height="${height}">
-      <defs>
-        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#0284c7;stop-opacity:1" />
-        </linearGradient>
-      </defs>
-      <rect width="${width}" height="${height}" fill="url(#grad)"/>
-      <text x="${width/2}" y="${height - 100}"
-            font-family="Arial, sans-serif"
-            font-size="48"
-            font-weight="bold"
-            fill="white"
-            text-anchor="middle">BP Cleaning</text>
-      <text x="${width/2}" y="${height - 45}"
-            font-family="Arial, sans-serif"
-            font-size="28"
-            fill="rgba(255,255,255,0.9)"
-            text-anchor="middle">Gestione Magazzino</text>
+      <rect width="${width}" height="${height}" fill="white"/>
     </svg>
   `;
 
@@ -45,7 +30,7 @@ async function generateOGImage() {
     .composite([
       {
         input: logoBuffer,
-        top: Math.floor((height - logoSize) / 2) - 50,
+        top: padding,
         left: Math.floor((width - logoSize) / 2),
       }
     ])

@@ -28,7 +28,11 @@
       "mcp__supabase__list_tables",
       "mcp__supabase__apply_migration",
       "mcp__vercel__get_deployment",
-      "Bash(node scripts/generate-images.mjs:*)"
+      "Bash(node scripts/generate-images.mjs:*)",
+      "Bash(Get-Item \"C:\\\\AI_Projects\\\\bp-cleaning-app\\\\src\\\\app\\\\favicon.ico\")",
+      "Bash(Select-Object Name, Length, LastWriteTime)",
+      "Bash(Get-Item \"C:\\\\AI_Projects\\\\bp-cleaning-app\\\\src\\\\app\\\\icon.png\")",
+      "Bash(dir:*)"
     ]
   }
 }

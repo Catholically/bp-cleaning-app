@@ -545,7 +545,7 @@ function EtichetteContent() {
                 Stampa Etichette
               </h1>
               <p className="text-sky-100 text-sm">
-                {printMode === 'dymo' ? 'DYMO 1"x1" - Code 128' : printMode === 'small' ? '48.5x25.4mm - 84 per foglio' : 'Foglio A4 - 65 per foglio'}
+                {printMode === 'dymo' ? 'DYMO 1"x1" (25.4mm) - Code 128' : printMode === 'small' ? '1.91"x1" (48.5x25.4mm) - 84 per foglio' : 'Foglio A4 - 65 per foglio'}
               </p>
             </div>
           </div>
@@ -561,7 +561,7 @@ function EtichetteContent() {
               }`}
             >
               <QrCode className="w-4 h-4" />
-              DYMO 1"x1"
+              1"x1"
             </button>
             <button
               onClick={() => setPrintMode('small')}
@@ -572,7 +572,7 @@ function EtichetteContent() {
               }`}
             >
               <Tag className="w-4 h-4" />
-              48.5x25.4
+              1.91"x1"
             </button>
             <button
               onClick={() => setPrintMode('avery')}
@@ -732,8 +732,8 @@ function EtichetteContent() {
           </select>
         </div>
 
-        {printMode === 'avery' && (
-          /* Select All - Only for Avery mode */
+        {(printMode === 'avery' || printMode === 'small') && (
+          /* Select All - For Avery and Small modes */
           <div className="flex items-center justify-between mb-3 px-1">
             <button
               onClick={toggleSelectAll}
@@ -767,8 +767,8 @@ function EtichetteContent() {
               }`}
             >
               <div className="p-3 flex items-center gap-3">
-                {/* Checkbox - Only for Avery mode */}
-                {printMode === 'avery' && (
+                {/* Checkbox - For Avery and Small modes */}
+                {(printMode === 'avery' || printMode === 'small') && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
@@ -795,8 +795,8 @@ function EtichetteContent() {
                   <div className="text-xs text-gray-400 font-mono">{product.barcode}</div>
                 </div>
 
-                {/* Quantity Controls - Only for Avery mode when selected */}
-                {printMode === 'avery' && product.selected && (
+                {/* Quantity Controls - For Avery and Small modes when selected */}
+                {(printMode === 'avery' || printMode === 'small') && product.selected && (
                   <div className="flex items-center gap-1">
                     <button
                       onClick={(e) => {
