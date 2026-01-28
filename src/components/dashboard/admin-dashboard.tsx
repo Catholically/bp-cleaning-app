@@ -277,14 +277,45 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      {/* Quick Actions - Admin only */}
-      {isSuperuser && (
-        <div className="px-5 mt-6 max-w-4xl mx-auto">
-          <div className="grid grid-cols-2 gap-3">
+      {/* Quick Actions */}
+      <div className="px-5 mt-6 max-w-4xl mx-auto">
+        <div className={`grid gap-3 ${isSuperuser ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2'}`}>
+          {/* Carico - visibile a tutti */}
+          <Link
+            href="/movimenti/carico"
+            className="action-card flex items-center gap-3 animate-slide-up"
+            style={{ animationDelay: '0.25s' }}
+          >
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <ArrowDownToLine className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">Carico</h3>
+              <p className="text-xs text-gray-500">Arrivo merce</p>
+            </div>
+          </Link>
+
+          {/* Scarico - visibile a tutti */}
+          <Link
+            href="/movimenti/scarico"
+            className="action-card flex items-center gap-3 animate-slide-up"
+            style={{ animationDelay: '0.3s' }}
+          >
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
+              <ArrowUpFromLine className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">Scarico</h3>
+              <p className="text-xs text-gray-500">Per cantiere</p>
+            </div>
+          </Link>
+
+          {/* + Prodotto - solo admin */}
+          {isSuperuser && (
             <Link
               href="/prodotti/nuovo"
               className="action-card flex items-center gap-3 animate-slide-up"
-              style={{ animationDelay: '0.25s' }}
+              style={{ animationDelay: '0.35s' }}
             >
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
                 <Plus className="w-5 h-5 text-white" />
@@ -294,11 +325,14 @@ export function AdminDashboard() {
                 <p className="text-xs text-gray-500">Aggiungi nuovo</p>
               </div>
             </Link>
+          )}
 
+          {/* + Cantiere - solo admin */}
+          {isSuperuser && (
             <Link
               href="/cantieri/nuovo"
               className="action-card flex items-center gap-3 animate-slide-up"
-              style={{ animationDelay: '0.3s' }}
+              style={{ animationDelay: '0.4s' }}
             >
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
                 <Plus className="w-5 h-5 text-white" />
@@ -308,9 +342,9 @@ export function AdminDashboard() {
                 <p className="text-xs text-gray-500">Aggiungi nuovo</p>
               </div>
             </Link>
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Low Stock Alert */}
       {lowStock.length > 0 && (
