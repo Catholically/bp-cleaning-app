@@ -87,9 +87,9 @@ export default function CantieriPage() {
     <div className="min-h-screen">
       <header className="bg-gradient-to-r from-violet-500 via-purple-600 to-indigo-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => router.back()} className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
+          <Link href="/" className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
             <ChevronLeft className="w-5 h-5" />
-          </button>
+          </Link>
           <Building2 className="w-6 h-6" />
           <div>
             <h1 className="text-xl font-bold">Cantieri</h1>
