@@ -77,6 +77,7 @@ function EtichetteContent() {
   const [dymoQuantity, setDymoQuantity] = useState(1)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const previewCanvasRef = useRef<HTMLCanvasElement>(null)
+  const [barcodeImages, setBarcodeImages] = useState<Record<string, string>>({})
 
   useEffect(() => {
     let isMounted = true
@@ -171,6 +172,37 @@ function EtichetteContent() {
       return ''
     }
   }
+
+  // Generate small barcode for product card display
+  function generateSmallBarcodeDataURL(code: string): string {
+    const canvas = document.createElement('canvas')
+    try {
+      JsBarcode(canvas, code, {
+        format: 'CODE128',
+        width: 1,
+        height: 20,
+        displayValue: false,
+        margin: 0,
+        background: '#ffffff'
+      })
+      return canvas.toDataURL('image/png')
+    } catch {
+      return ''
+    }
+  }
+
+  // Generate barcode images when products load
+  useEffect(() => {
+    if (products.length > 0) {
+      const images: Record<string, string> = {}
+      products.forEach(p => {
+        if (p.barcode) {
+          images[p.id] = generateSmallBarcodeDataURL(p.barcode)
+        }
+      })
+      setBarcodeImages(images)
+    }
+  }, [products])
 
   function updateDymoPreview() {
     const canvas = previewCanvasRef.current
@@ -545,7 +577,7 @@ function EtichetteContent() {
                 Stampa Etichette
               </h1>
               <p className="text-sky-100 text-sm">
-                {printMode === 'dymo' ? 'DYMO 1"x1" (25.4mm) - Code 128' : printMode === 'small' ? '1.91"x1" (48.5x25.4mm) - 84 per foglio' : 'Foglio A4 - 65 per foglio'}
+                {printMode === 'dymo' ? 'DYMO 1"x1" (25.4mm) - Code 128' : printMode === 'small' ? 'DYMO 1.91"x1" (48.5x25.4mm) - Code 128' : 'Foglio A4 - 65 etichette per foglio'}
               </p>
             </div>
           </div>
@@ -554,36 +586,45 @@ function EtichetteContent() {
           <div className="flex gap-2 mb-4">
             <button
               onClick={() => setPrintMode('dymo')}
-              className={`flex-1 py-2.5 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors ${
+              className={`flex-1 py-2.5 px-4 rounded-xl font-medium flex flex-col items-center justify-center gap-0.5 transition-colors ${
                 printMode === 'dymo'
                   ? 'bg-white text-sky-600'
                   : 'bg-white/20 hover:bg-white/30'
               }`}
             >
-              <QrCode className="w-4 h-4" />
-              1"x1"
+              <div className="flex items-center gap-1">
+                <QrCode className="w-4 h-4" />
+                <span>DYMO</span>
+              </div>
+              <span className="text-xs opacity-75">1"x1"</span>
             </button>
             <button
               onClick={() => setPrintMode('small')}
-              className={`flex-1 py-2.5 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors ${
+              className={`flex-1 py-2.5 px-4 rounded-xl font-medium flex flex-col items-center justify-center gap-0.5 transition-colors ${
                 printMode === 'small'
                   ? 'bg-white text-sky-600'
                   : 'bg-white/20 hover:bg-white/30'
               }`}
             >
-              <Tag className="w-4 h-4" />
-              1.91"x1"
+              <div className="flex items-center gap-1">
+                <Tag className="w-4 h-4" />
+                <span>DYMO</span>
+              </div>
+              <span className="text-xs opacity-75">1.91"x1"</span>
             </button>
             <button
               onClick={() => setPrintMode('avery')}
-              className={`flex-1 py-2.5 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors ${
+              className={`flex-1 py-2.5 px-4 rounded-xl font-medium flex flex-col items-center justify-center gap-0.5 transition-colors ${
                 printMode === 'avery'
                   ? 'bg-white text-sky-600'
                   : 'bg-white/20 hover:bg-white/30'
               }`}
             >
-              <FileText className="w-4 h-4" />
-              Foglio A4
+              <div className="flex items-center gap-1">
+                <FileText className="w-4 h-4" />
+                <span>A4</span>
+              </div>
+              <span className="text-xs opacity-75">65 etichette</span>
             </button>
           </div>
 
@@ -782,6 +823,17 @@ function EtichetteContent() {
                   >
                     {product.selected && <Check className="w-4 h-4" />}
                   </button>
+                )}
+
+                {/* Barcode Image */}
+                {barcodeImages[product.id] && (
+                  <div className="flex-shrink-0">
+                    <img
+                      src={barcodeImages[product.id]}
+                      alt={product.barcode}
+                      className="h-8 w-auto"
+                    />
+                  </div>
                 )}
 
                 {/* Product Info */}
