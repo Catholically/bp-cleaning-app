@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
@@ -46,7 +46,7 @@ const ROLE_CONFIG = {
   }
 }
 
-export default function UtentiPage() {
+function UtentiContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { isSuperuser, profile: currentProfile } = useAuth()
@@ -614,5 +614,17 @@ export default function UtentiPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function UtentiPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+      </div>
+    }>
+      <UtentiContent />
+    </Suspense>
   )
 }

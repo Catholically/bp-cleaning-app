@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import { formatCurrency, cn } from '@/lib/utils'
 import { Worksite } from '@/lib/types'
-import { Building2, Plus, MapPin, Search, X, ChevronLeft } from 'lucide-react'
+import { Building2, Plus, MapPin, Search, X, ChevronLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -14,7 +14,7 @@ interface WorksiteWithCosts extends Worksite {
   monthly_cost?: number
 }
 
-export default function CantieriPage() {
+function CantieriContent() {
   const { isSuperuser } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -222,5 +222,17 @@ export default function CantieriPage() {
         </Link>
       )}
     </div>
+  )
+}
+
+export default function CantieriPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-violet-600 animate-spin" />
+      </div>
+    }>
+      <CantieriContent />
+    </Suspense>
   )
 }

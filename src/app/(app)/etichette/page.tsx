@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Product, CATEGORY_LABELS } from '@/lib/types'
@@ -15,7 +15,8 @@ import {
   Package,
   Filter,
   QrCode,
-  FileText
+  FileText,
+  Loader2
 } from 'lucide-react'
 import Link from 'next/link'
 import JsBarcode from 'jsbarcode'
@@ -60,7 +61,7 @@ interface ProductWithQuantity extends Product {
 
 type PrintMode = 'avery' | 'dymo' | 'small'
 
-export default function EtichettePage() {
+function EtichetteContent() {
   const searchParams = useSearchParams()
   const fromImpostazioni = searchParams.get('from') === 'impostazioni'
   const backUrl = fromImpostazioni ? '/impostazioni' : '/'
@@ -849,5 +850,17 @@ export default function EtichettePage() {
       {/* Hidden canvas for barcode generation */}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
     </div>
+  )
+}
+
+export default function EtichettePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-sky-600 animate-spin" />
+      </div>
+    }>
+      <EtichetteContent />
+    </Suspense>
   )
 }

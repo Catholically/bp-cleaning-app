@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
@@ -18,7 +18,7 @@ import {
 import Link from 'next/link'
 import * as XLSX from 'xlsx'
 
-export default function ReportPage() {
+function ReportContent() {
   const [loading, setLoading] = useState<string | null>(null)
   const supabase = createClient()
   const { isSuperuser, loading: authLoading } = useAuth()
@@ -306,5 +306,17 @@ export default function ReportPage() {
         ))}
       </div>
     </div>
+  )
+}
+
+export default function ReportPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+      </div>
+    }>
+      <ReportContent />
+    </Suspense>
   )
 }

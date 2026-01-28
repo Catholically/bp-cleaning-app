@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
@@ -20,7 +20,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
-export default function FornitoriPage() {
+function FornitoriContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { isSuperuser } = useAuth()
@@ -458,5 +458,17 @@ export default function FornitoriPage() {
         <Plus className="w-6 h-6" />
       </button>
     </div>
+  )
+}
+
+export default function FornitoriPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-amber-600 animate-spin" />
+      </div>
+    }>
+      <FornitoriContent />
+    </Suspense>
   )
 }
