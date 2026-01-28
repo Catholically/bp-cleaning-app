@@ -77,7 +77,6 @@ function EtichetteContent() {
   const [dymoQuantity, setDymoQuantity] = useState(1)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const previewCanvasRef = useRef<HTMLCanvasElement>(null)
-  const [barcodeImages, setBarcodeImages] = useState<Record<string, string>>({})
 
   useEffect(() => {
     let isMounted = true
@@ -172,37 +171,6 @@ function EtichetteContent() {
       return ''
     }
   }
-
-  // Generate small barcode for product card display
-  function generateSmallBarcodeDataURL(code: string): string {
-    const canvas = document.createElement('canvas')
-    try {
-      JsBarcode(canvas, code, {
-        format: 'CODE128',
-        width: 1,
-        height: 20,
-        displayValue: false,
-        margin: 0,
-        background: '#ffffff'
-      })
-      return canvas.toDataURL('image/png')
-    } catch {
-      return ''
-    }
-  }
-
-  // Generate barcode images when products load
-  useEffect(() => {
-    if (products.length > 0) {
-      const images: Record<string, string> = {}
-      products.forEach(p => {
-        if (p.barcode) {
-          images[p.id] = generateSmallBarcodeDataURL(p.barcode)
-        }
-      })
-      setBarcodeImages(images)
-    }
-  }, [products])
 
   function updateDymoPreview() {
     const canvas = previewCanvasRef.current
@@ -350,6 +318,79 @@ function EtichetteContent() {
 
       const filename = customBarcode.trim() || customText.trim().replace(/\s+/g, '_')
       pdf.save(`dymo-${filename}-x${dymoQuantity}.pdf`)
+
+    } catch (error) {
+      console.error('Errore generazione PDF:', error)
+      alert('Errore nella generazione del PDF')
+    }
+
+    setGenerating(false)
+  }
+
+  // Generate DYMO PDF from selected products (with barcode)
+  async function generateDymoFromProducts() {
+    if (selectedProducts.length === 0) return
+
+    setGenerating(true)
+
+    try {
+      // PDF dimensione DYMO 1x1" (25.4mm x 25.4mm)
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [DYMO_WIDTH, DYMO_HEIGHT]
+      })
+
+      // Prepara lista etichette da stampare
+      const labelsToPrint: ProductWithQuantity[] = []
+      selectedProducts.forEach(p => {
+        for (let i = 0; i < p.printQuantity; i++) {
+          labelsToPrint.push(p)
+        }
+      })
+
+      labelsToPrint.forEach((product, i) => {
+        if (i > 0) pdf.addPage([DYMO_WIDTH, DYMO_HEIGHT])
+
+        // Genera barcode Code 128 con SKU
+        const barcodeValue = product.sku || product.barcode || ''
+        if (barcodeValue) {
+          const barcodeCanvas = document.createElement('canvas')
+          JsBarcode(barcodeCanvas, barcodeValue, {
+            format: 'CODE128',
+            width: 1.2,
+            height: 35,
+            displayValue: true,
+            fontSize: 9,
+            margin: 0,
+            background: '#ffffff',
+            textMargin: 1
+          })
+
+          const barcodeDataURL = barcodeCanvas.toDataURL('image/png')
+
+          // Calcola dimensioni per centrare
+          const maxBarcodeWidth = DYMO_WIDTH - 2
+          const barcodeAspect = barcodeCanvas.height / barcodeCanvas.width
+          const barcodeWidth = Math.min(maxBarcodeWidth, DYMO_WIDTH - 2)
+          const barcodeHeight = barcodeWidth * barcodeAspect
+
+          const x = (DYMO_WIDTH - barcodeWidth) / 2
+          const y = 1.5
+
+          pdf.addImage(barcodeDataURL, 'PNG', x, y, barcodeWidth, barcodeHeight)
+
+          // Nome prodotto sotto (troncato)
+          const productName = product.name.substring(0, 18)
+          pdf.setFontSize(6)
+          pdf.setFont('helvetica', 'bold')
+          const textWidth = pdf.getTextWidth(productName)
+          pdf.text(productName, (DYMO_WIDTH - textWidth) / 2, DYMO_HEIGHT - 1.5)
+        }
+      })
+
+      const date = new Date().toISOString().slice(0, 10)
+      pdf.save(`dymo-etichette-${date}.pdf`)
 
     } catch (error) {
       console.error('Errore generazione PDF:', error)
@@ -547,11 +588,6 @@ function EtichetteContent() {
     }
   }
 
-  function selectProductForDymo(product: Product) {
-    setCustomBarcode(product.sku || product.barcode || '')
-    setCustomText(product.name.substring(0, 20))
-  }
-
   const categories = [...new Set(products.map(p => p.category))]
 
   if (loading) {
@@ -628,122 +664,50 @@ function EtichetteContent() {
             </button>
           </div>
 
-          {printMode === 'dymo' ? (
-            /* DYMO Mode Header */
-            <div className="space-y-3">
-              {/* Preview */}
-              <div className="flex justify-center">
-                <div className="bg-white rounded-xl p-3 shadow-lg">
-                  <canvas
-                    ref={previewCanvasRef}
-                    className="w-24 h-24"
-                    style={{ imageRendering: 'crisp-edges' }}
-                  />
-                  <p className="text-center text-xs text-gray-500 mt-1">25.4mm x 25.4mm</p>
-                </div>
-              </div>
-
-              {/* Input Fields */}
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  placeholder="Codice a barre (es. SKU, codice prodotto)"
-                  value={customBarcode}
-                  onChange={(e) => setCustomBarcode(e.target.value.toUpperCase())}
-                  className="w-full px-4 py-3 rounded-xl text-gray-900 placeholder-gray-400 font-mono"
-                />
-                <input
-                  type="text"
-                  placeholder="Testo aggiuntivo (opzionale)"
-                  value={customText}
-                  onChange={(e) => setCustomText(e.target.value)}
-                  maxLength={20}
-                  className="w-full px-4 py-3 rounded-xl text-gray-900 placeholder-gray-400"
-                />
-              </div>
-
-              {/* Quantity & Print */}
-              <div className="flex gap-2">
-                <div className="flex items-center gap-2 bg-white/20 rounded-xl px-3">
-                  <button
-                    onClick={() => setDymoQuantity(Math.max(1, dymoQuantity - 1))}
-                    className="p-1.5 hover:bg-white/20 rounded-lg"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={dymoQuantity}
-                    onChange={(e) => setDymoQuantity(Math.max(1, Math.min(100, parseInt(e.target.value) || 1)))}
-                    className="w-12 bg-transparent text-center font-bold text-lg"
-                  />
-                  <button
-                    onClick={() => setDymoQuantity(Math.min(100, dymoQuantity + 1))}
-                    className="p-1.5 hover:bg-white/20 rounded-lg"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                </div>
-                <button
-                  onClick={generateDymoPDF}
-                  disabled={generating || (!customBarcode.trim() && !customText.trim())}
-                  className="flex-1 bg-white text-sky-600 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-sky-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                >
-                  {generating ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-sky-600" />
-                  ) : (
-                    <>
-                      <Printer className="w-5 h-5" />
-                      STAMPA {dymoQuantity} ETICHETT{dymoQuantity === 1 ? 'A' : 'E'}
-                    </>
-                  )}
-                </button>
-              </div>
+          {/* Stats and Print Button - Same for all modes */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-white/20 rounded-xl p-3 text-center">
+              <div className="text-2xl font-bold">{selectedProducts.length}</div>
+              <div className="text-xs text-sky-100">Prodotti</div>
             </div>
-          ) : (
-            /* Avery / Small Mode Header */
-            <>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-white/20 rounded-xl p-3 text-center">
-                  <div className="text-2xl font-bold">{selectedProducts.length}</div>
-                  <div className="text-xs text-sky-100">Prodotti</div>
-                </div>
-                <div className="bg-white/20 rounded-xl p-3 text-center">
-                  <div className="text-2xl font-bold">{totalLabels}</div>
-                  <div className="text-xs text-sky-100">Etichette</div>
-                </div>
-                <div className="bg-white/20 rounded-xl p-3 text-center">
-                  <div className="text-2xl font-bold">{Math.ceil(totalLabels / (printMode === 'small' ? SMALL_LABELS_PER_PAGE : LABELS_PER_PAGE))}</div>
-                  <div className="text-xs text-sky-100">Pagine A4</div>
-                </div>
+            <div className="bg-white/20 rounded-xl p-3 text-center">
+              <div className="text-2xl font-bold">{totalLabels}</div>
+              <div className="text-xs text-sky-100">Etichette</div>
+            </div>
+            <div className="bg-white/20 rounded-xl p-3 text-center">
+              <div className="text-2xl font-bold">
+                {printMode === 'dymo' ? totalLabels : Math.ceil(totalLabels / (printMode === 'small' ? SMALL_LABELS_PER_PAGE : LABELS_PER_PAGE))}
               </div>
+              <div className="text-xs text-sky-100">{printMode === 'dymo' ? 'Stampe' : 'Pagine A4'}</div>
+            </div>
+          </div>
 
-              <button
-                onClick={() => printMode === 'small' ? generateSmallPDF() : generatePDF()}
-                disabled={generating || selectedProducts.length === 0}
-                className="w-full mt-4 bg-white text-sky-600 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-sky-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-lg"
-              >
-                {generating ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-sky-600"></div>
-                    Generazione in corso...
-                  </>
-                ) : selectedProducts.length === 0 ? (
-                  <>
-                    <Printer className="w-6 h-6" />
-                    Seleziona prodotti da stampare
-                  </>
-                ) : (
-                  <>
-                    <Printer className="w-6 h-6" />
-                    STAMPA PDF ({totalLabels} etichette)
-                  </>
-                )}
-              </button>
-            </>
-          )}
+          <button
+            onClick={() => {
+              if (printMode === 'dymo') generateDymoFromProducts()
+              else if (printMode === 'small') generateSmallPDF()
+              else generatePDF()
+            }}
+            disabled={generating || selectedProducts.length === 0}
+            className="w-full mt-4 bg-white text-sky-600 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-sky-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-lg"
+          >
+            {generating ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-sky-600"></div>
+                Generazione in corso...
+              </>
+            ) : selectedProducts.length === 0 ? (
+              <>
+                <Printer className="w-6 h-6" />
+                Seleziona prodotti da stampare
+              </>
+            ) : (
+              <>
+                <Printer className="w-6 h-6" />
+                STAMPA {printMode === 'dymo' ? 'DYMO' : 'PDF'} ({totalLabels} etichett{totalLabels === 1 ? 'a' : 'e'})
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -773,68 +737,41 @@ function EtichetteContent() {
           </select>
         </div>
 
-        {(printMode === 'avery' || printMode === 'small') && (
-          /* Select All - For Avery and Small modes */
-          <div className="flex items-center justify-between mb-3 px-1">
-            <button
-              onClick={toggleSelectAll}
-              className="text-sm text-sky-600 hover:text-sky-700 font-medium flex items-center gap-1"
-            >
-              <Check className="w-4 h-4" />
-              {filteredProducts.every(p => p.selected) ? 'Deseleziona tutti' : 'Seleziona tutti'}
-            </button>
-            <span className="text-sm text-gray-500">{filteredProducts.length} prodotti</span>
-          </div>
-        )}
-
-        {printMode === 'dymo' && (
-          <p className="text-sm text-gray-500 mb-3 px-1">
-            Clicca su un prodotto per copiare SKU e nome
-          </p>
-        )}
+        {/* Select All - For all modes */}
+        <div className="flex items-center justify-between mb-3 px-1">
+          <button
+            onClick={toggleSelectAll}
+            className="text-sm text-sky-600 hover:text-sky-700 font-medium flex items-center gap-1"
+          >
+            <Check className="w-4 h-4" />
+            {filteredProducts.every(p => p.selected) ? 'Deseleziona tutti' : 'Seleziona tutti'}
+          </button>
+          <span className="text-sm text-gray-500">{filteredProducts.length} prodotti</span>
+        </div>
 
         {/* Product List */}
         <div className="space-y-2">
           {filteredProducts.map(product => (
             <div
               key={product.id}
-              onClick={() => printMode === 'dymo' && selectProductForDymo(product)}
               className={`bg-white rounded-xl border-2 transition-all ${
-                printMode === 'dymo'
-                  ? 'cursor-pointer hover:border-sky-300 border-transparent shadow-sm'
-                  : product.selected
-                    ? 'border-sky-500 shadow-md'
-                    : 'border-transparent shadow-sm'
+                product.selected
+                  ? 'border-sky-500 shadow-md'
+                  : 'border-transparent shadow-sm'
               }`}
             >
               <div className="p-3 flex items-center gap-3">
-                {/* Checkbox - For Avery and Small modes */}
-                {(printMode === 'avery' || printMode === 'small') && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      toggleSelect(product.id)
-                    }}
-                    className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors ${
-                      product.selected
-                        ? 'bg-sky-500 border-sky-500 text-white'
-                        : 'border-gray-300 hover:border-sky-400'
-                    }`}
-                  >
-                    {product.selected && <Check className="w-4 h-4" />}
-                  </button>
-                )}
-
-                {/* Barcode Image */}
-                {barcodeImages[product.id] && (
-                  <div className="flex-shrink-0">
-                    <img
-                      src={barcodeImages[product.id]}
-                      alt={product.barcode}
-                      className="h-8 w-auto"
-                    />
-                  </div>
-                )}
+                {/* Checkbox - For all modes */}
+                <button
+                  onClick={() => toggleSelect(product.id)}
+                  className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors ${
+                    product.selected
+                      ? 'bg-sky-500 border-sky-500 text-white'
+                      : 'border-gray-300 hover:border-sky-400'
+                  }`}
+                >
+                  {product.selected && <Check className="w-4 h-4" />}
+                </button>
 
                 {/* Product Info */}
                 <div className="flex-1 min-w-0">
@@ -847,14 +784,11 @@ function EtichetteContent() {
                   <div className="text-xs text-gray-400 font-mono">{product.barcode}</div>
                 </div>
 
-                {/* Quantity Controls - For Avery and Small modes when selected */}
-                {(printMode === 'avery' || printMode === 'small') && product.selected && (
+                {/* Quantity Controls - For all modes when selected */}
+                {product.selected && (
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        updateQuantity(product.id, -1)
-                      }}
+                      onClick={() => updateQuantity(product.id, -1)}
                       className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
                     >
                       <ChevronLeft className="w-4 h-4" />
@@ -863,26 +797,15 @@ function EtichetteContent() {
                       type="number"
                       min="1"
                       value={product.printQuantity}
-                      onClick={(e) => e.stopPropagation()}
                       onChange={(e) => setQuantity(product.id, parseInt(e.target.value) || 1)}
                       className="w-12 h-8 text-center border rounded-lg text-sm font-medium"
                     />
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        updateQuantity(product.id, 1)
-                      }}
+                      onClick={() => updateQuantity(product.id, 1)}
                       className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
-                  </div>
-                )}
-
-                {/* DYMO quick select indicator */}
-                {printMode === 'dymo' && (
-                  <div className="text-sky-500">
-                    <ChevronRight className="w-5 h-5" />
                   </div>
                 )}
               </div>
