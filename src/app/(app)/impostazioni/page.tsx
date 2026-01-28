@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/auth-provider'
 import {
   Settings,
@@ -18,15 +19,16 @@ import {
 import Link from 'next/link'
 
 export default function ImpostazioniPage() {
+  const router = useRouter()
   const { profile, isSuperuser, isManager, isManagerOrSuperuser, signOut } = useAuth()
 
   return (
     <div className="min-h-screen">
       <header className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white px-4 pt-12 pb-6 rounded-b-3xl">
         <div className="flex items-center gap-3">
-          <Link href="/" className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
+          <button onClick={() => router.back()} className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
             <ChevronLeft className="w-5 h-5" />
-          </Link>
+          </button>
           <Settings className="w-6 h-6" />
           <div>
             <h1 className="text-xl font-bold">Impostazioni</h1>
