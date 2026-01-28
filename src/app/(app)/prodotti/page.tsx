@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import { formatCurrency, formatNumber, cn } from '@/lib/utils'
 import { Product, ProductType, ProductCategory, CATEGORY_ICONS, CATEGORY_LABELS, CATEGORIES_BY_TYPE, filterProductsByType } from '@/lib/types'
-import { Search, Plus, Filter, Package, AlertTriangle, Check, Sparkles, Wrench, ChevronDown, ChevronUp } from 'lucide-react'
+import { Search, Plus, Filter, Package, AlertTriangle, Check, Sparkles, Wrench, ChevronDown, ChevronUp, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
@@ -118,6 +118,9 @@ function ProductsContent() {
     <div className="min-h-screen">
       <header className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white px-4 pt-12 pb-6 rounded-b-3xl">
         <div className="flex items-center gap-3">
+          <Link href="/" className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
+            <ChevronLeft className="w-5 h-5" />
+          </Link>
           <Package className="w-6 h-6" />
           <div>
             <h1 className="text-xl font-bold">Prodotti</h1>
