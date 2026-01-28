@@ -153,15 +153,15 @@ function EtichetteContent() {
     ))
   }
 
-  function generateBarcodeDataURL(code: string, format: 'EAN13' | 'CODE128' = 'EAN13'): string {
+  function generateBarcodeDataURL(code: string, format: 'EAN13' | 'CODE128' = 'CODE128'): string {
     const canvas = document.createElement('canvas')
     try {
       JsBarcode(canvas, code, {
         format: format,
-        width: format === 'CODE128' ? 1.2 : 1.5,
-        height: format === 'CODE128' ? 25 : 30,
+        width: 1.2,
+        height: 30,
         displayValue: true,
-        fontSize: format === 'CODE128' ? 9 : 10,
+        fontSize: 9,
         margin: 2,
         background: '#ffffff',
         textMargin: 1
