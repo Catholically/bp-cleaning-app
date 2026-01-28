@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, Suspense, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import { formatCurrency, formatNumber, cn } from '@/lib/utils'
-import { Product, ProductType, CATEGORY_ICONS, filterProductsByType } from '@/lib/types'
+import { Product, ProductType, ProductCategory, CATEGORY_ICONS, CATEGORY_LABELS, CATEGORIES_BY_TYPE, filterProductsByType } from '@/lib/types'
 import {
   ArrowDownToLine,
   Search,
@@ -17,7 +17,9 @@ import {
   ShieldAlert,
   Package,
   Sparkles,
-  Wrench
+  Wrench,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/library'
@@ -39,6 +41,8 @@ function CaricoContent() {
   const [showScanner, setShowScanner] = useState(false)
   const [scannerError, setScannerError] = useState<string | null>(null)
   const [productType, setProductType] = useState<ProductType>('all')
+  const [expandedType, setExpandedType] = useState<ProductType | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<ProductCategory | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null)
   const supabase = createClient()
@@ -196,11 +200,42 @@ function CaricoContent() {
     setScannerError(null)
   }, [])
 
-  const typeFilteredProducts = filterProductsByType(products, productType)
-  const filteredProducts = typeFilteredProducts.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.barcode?.toLowerCase().includes(search.toLowerCase())
-  )
+  const filteredProducts = (() => {
+    let filtered = products
+    if (selectedCategory) {
+      filtered = products.filter(p => p.category === selectedCategory)
+    } else if (productType !== 'all') {
+      filtered = filterProductsByType(products, productType)
+    }
+    return filtered.filter(p =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.barcode?.toLowerCase().includes(search.toLowerCase())
+    )
+  })()
+
+  const handleTypeClick = (type: ProductType) => {
+    if (type === 'all') {
+      setProductType('all')
+      setExpandedType(null)
+      setSelectedCategory(null)
+    } else if (expandedType === type) {
+      setExpandedType(null)
+      setSelectedCategory(null)
+      setProductType(type)
+    } else {
+      setProductType(type)
+      setExpandedType(type)
+      setSelectedCategory(null)
+    }
+  }
+
+  const handleCategoryClick = (category: ProductCategory) => {
+    if (selectedCategory === category) {
+      setSelectedCategory(null)
+    } else {
+      setSelectedCategory(category)
+    }
+  }
 
   const handleSubmit = async () => {
     if (!selectedProduct || !user) return
@@ -317,7 +352,7 @@ function CaricoContent() {
                 onClick={() => router.push('/movimenti')}
                 className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 focus:ring-gray-500 w-full"
               >
-                Torna ai Movimenti
+                Vai a Movimenti
               </button>
             </div>
           </div>
@@ -396,43 +431,78 @@ function CaricoContent() {
             </div>
 
             {/* Product Type Filter */}
-            <div className="flex gap-2 mt-3">
-              <button
-                onClick={() => setProductType('all')}
-                className={cn(
-                  'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all',
-                  productType === 'all'
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                )}
-              >
-                <Package className="w-4 h-4" />
-                Tutti
-              </button>
-              <button
-                onClick={() => setProductType('consumabile')}
-                className={cn(
-                  'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all',
-                  productType === 'consumabile'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                )}
-              >
-                <Sparkles className="w-4 h-4" />
-                Pulizia
-              </button>
-              <button
-                onClick={() => setProductType('attrezzatura')}
-                className={cn(
-                  'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all',
-                  productType === 'attrezzatura'
-                    ? 'bg-amber-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                )}
-              >
-                <Wrench className="w-4 h-4" />
-                Attrezzature
-              </button>
+            <div className="space-y-2 mt-3">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleTypeClick('all')}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                    productType === 'all' && !selectedCategory
+                      ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                      : 'bg-white text-gray-600 border border-gray-200'
+                  )}
+                >
+                  <Package className="w-4 h-4" />
+                  Tutti
+                </button>
+                <button
+                  onClick={() => handleTypeClick('consumabile')}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                    productType === 'consumabile'
+                      ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                      : 'bg-white text-gray-600 border border-gray-200'
+                  )}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Pulizia
+                  {expandedType === 'consumabile' ? (
+                    <ChevronUp className="w-3 h-3 ml-1" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3 ml-1" />
+                  )}
+                </button>
+                <button
+                  onClick={() => handleTypeClick('attrezzatura')}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                    productType === 'attrezzatura'
+                      ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                      : 'bg-white text-gray-600 border border-gray-200'
+                  )}
+                >
+                  <Wrench className="w-4 h-4" />
+                  Attrezz.
+                  {expandedType === 'attrezzatura' ? (
+                    <ChevronUp className="w-3 h-3 ml-1" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3 ml-1" />
+                  )}
+                </button>
+              </div>
+
+              {/* Sottocategorie espandibili */}
+              {expandedType && (
+                <div className="flex flex-wrap gap-2 animate-slide-up">
+                  {CATEGORIES_BY_TYPE[expandedType].map(category => (
+                    <button
+                      key={category}
+                      onClick={() => handleCategoryClick(category)}
+                      className={cn(
+                        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                        selectedCategory === category
+                          ? expandedType === 'consumabile'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-amber-500 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      )}
+                    >
+                      <span>{CATEGORY_ICONS[category]}</span>
+                      {CATEGORY_LABELS[category]}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
