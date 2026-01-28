@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import {
@@ -23,6 +23,10 @@ export default function ReportPage() {
   const supabase = createClient()
   const { isSuperuser, loading: authLoading } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const fromImpostazioni = searchParams.get('from') === 'impostazioni'
+  const backUrl = fromImpostazioni ? '/impostazioni' : '/'
 
   // Redirect non-superusers (managers cannot access reports)
   useEffect(() => {
@@ -267,7 +271,7 @@ export default function ReportPage() {
     <div className="min-h-screen">
       <header className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white px-4 pt-12 pb-6 rounded-b-3xl">
         <div className="flex items-center gap-3">
-          <Link href="/" className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
+          <Link href={backUrl} className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
             <ChevronLeft className="w-5 h-5" />
           </Link>
           <FileSpreadsheet className="w-6 h-6" />

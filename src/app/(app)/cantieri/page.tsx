@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import { formatCurrency, cn } from '@/lib/utils'
@@ -16,6 +17,10 @@ interface WorksiteWithCosts extends Worksite {
 export default function CantieriPage() {
   const { isSuperuser } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const fromImpostazioni = searchParams.get('from') === 'impostazioni'
+  const backUrl = fromImpostazioni ? '/impostazioni' : '/'
+
   const [worksites, setWorksites] = useState<WorksiteWithCosts[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -87,7 +92,7 @@ export default function CantieriPage() {
     <div className="min-h-screen">
       <header className="bg-gradient-to-r from-violet-500 via-purple-600 to-indigo-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
         <div className="flex items-center gap-3 mb-4">
-          <Link href="/" className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
+          <Link href={backUrl} className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
             <ChevronLeft className="w-5 h-5" />
           </Link>
           <Building2 className="w-6 h-6" />

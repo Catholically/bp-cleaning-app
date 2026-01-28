@@ -19,8 +19,10 @@ import {
   Sparkles,
   Wrench,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ChevronLeft
 } from 'lucide-react'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/library'
 
@@ -29,6 +31,8 @@ function CaricoContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const productIdFromUrl = searchParams.get('product')
+  const fromMovimenti = searchParams.get('from') === 'movimenti'
+  const backUrl = fromMovimenti ? '/movimenti' : '/'
   const [products, setProducts] = useState<Product[]>([])
   const [recentProducts, setRecentProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -367,6 +371,9 @@ function CaricoContent() {
       <div className="min-h-screen">
         <header className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
           <div className="flex items-center gap-3">
+            <Link href={backUrl} className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
+              <ChevronLeft className="w-5 h-5" />
+            </Link>
             <ArrowDownToLine className="w-6 h-6" />
             <div>
               <h1 className="text-xl font-bold">Carico Merce</h1>

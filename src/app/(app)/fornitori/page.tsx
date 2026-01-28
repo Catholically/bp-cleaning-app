@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import { Supplier } from '@/lib/types'
@@ -18,10 +18,15 @@ import {
   Save,
   Loader2
 } from 'lucide-react'
+import Link from 'next/link'
 
 export default function FornitoriPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { isSuperuser } = useAuth()
+
+  const fromImpostazioni = searchParams.get('from') === 'impostazioni'
+  const backUrl = fromImpostazioni ? '/impostazioni' : '/'
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -333,12 +338,12 @@ export default function FornitoriPage() {
     <div className="min-h-screen">
       <header className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
         <div className="flex items-center gap-3 mb-4">
-          <button
-            onClick={() => router.back()}
+          <Link
+            href={backUrl}
             className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-          </button>
+          </Link>
           <div>
             <h1 className="text-xl font-bold">Fornitori</h1>
             <p className="text-amber-100 text-sm">{filteredSuppliers.length} fornitori attivi</p>

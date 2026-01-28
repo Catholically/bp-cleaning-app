@@ -69,7 +69,7 @@ export default function ImpostazioniPage() {
             Gestione
           </h3>
 
-          <Link href="/cantieri" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
+          <Link href="/cantieri?from=impostazioni" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-violet-100">
               <Building2 className="w-5 h-5 text-violet-600" />
             </div>
@@ -82,7 +82,7 @@ export default function ImpostazioniPage() {
 
           {/* Fornitori - visible to superuser and manager */}
           {isManagerOrSuperuser && (
-            <Link href="/fornitori" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
+            <Link href="/fornitori?from=impostazioni" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-amber-100">
                 <Truck className="w-5 h-5 text-amber-600" />
               </div>
@@ -96,7 +96,7 @@ export default function ImpostazioniPage() {
 
           {/* Utenti - only superuser */}
           {isSuperuser && (
-            <Link href="/utenti" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
+            <Link href="/utenti?from=impostazioni" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-blue-100">
                 <Users className="w-5 h-5 text-blue-600" />
               </div>
@@ -116,7 +116,7 @@ export default function ImpostazioniPage() {
 
           {/* Report - only superuser (managers cannot see cost reports) */}
           {isSuperuser && (
-            <Link href="/report" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
+            <Link href="/report?from=impostazioni" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-emerald-100">
                 <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
               </div>
@@ -130,7 +130,7 @@ export default function ImpostazioniPage() {
 
           {/* Etichette - visible to superuser and manager */}
           {isManagerOrSuperuser && (
-            <Link href="/etichette" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
+            <Link href="/etichette?from=impostazioni" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-sky-100">
                 <Tag className="w-5 h-5 text-sky-600" />
               </div>

@@ -15,12 +15,14 @@ import {
   X,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
   Loader2,
   ShieldAlert,
   Package,
   Sparkles,
   Wrench
 } from 'lucide-react'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/library'
 
@@ -30,6 +32,8 @@ function ScaricoContent() {
   const searchParams = useSearchParams()
   const productIdFromUrl = searchParams.get('product')
   const cantiereIdFromUrl = searchParams.get('cantiere')
+  const fromMovimenti = searchParams.get('from') === 'movimenti'
+  const backUrl = fromMovimenti ? '/movimenti' : '/'
   const [products, setProducts] = useState<Product[]>([])
   const [recentProducts, setRecentProducts] = useState<Product[]>([])
   const [worksites, setWorksites] = useState<Worksite[]>([])
@@ -406,6 +410,9 @@ function ScaricoContent() {
       <div className="min-h-screen">
         <header className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 text-white px-4 pt-12 pb-6 rounded-b-3xl">
           <div className="flex items-center gap-3">
+            <Link href={backUrl} className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors">
+              <ChevronLeft className="w-5 h-5" />
+            </Link>
             <ArrowUpFromLine className="w-6 h-6" />
             <div>
               <h1 className="text-xl font-bold">Scarico Merce</h1>

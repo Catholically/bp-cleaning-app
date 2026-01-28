@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
 import { useAuth } from '@/components/providers/auth-provider'
 import { Profile, UserRole, Worksite, UserWorksite } from '@/lib/types'
 import {
@@ -47,7 +48,11 @@ const ROLE_CONFIG = {
 
 export default function UtentiPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { isSuperuser, profile: currentProfile } = useAuth()
+
+  const fromImpostazioni = searchParams.get('from') === 'impostazioni'
+  const backUrl = fromImpostazioni ? '/impostazioni' : '/'
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [worksites, setWorksites] = useState<Worksite[]>([])
   const [userWorksites, setUserWorksites] = useState<UserWorksite[]>([])
@@ -500,12 +505,12 @@ export default function UtentiPage() {
     <div className="min-h-screen">
       <header className="bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
         <div className="flex items-center gap-3 mb-4">
-          <button
-            onClick={() => router.back()}
+          <Link
+            href={backUrl}
             className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-          </button>
+          </Link>
           <div>
             <h1 className="text-xl font-bold">Gestione Utenti</h1>
             <p className="text-blue-100 text-sm">{profiles.length} utenti registrati</p>
