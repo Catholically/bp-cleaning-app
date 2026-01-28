@@ -46,6 +46,7 @@ interface RecentMovement {
   product_name: string
   quantity: number
   worksite_name?: string
+  operator_name?: string
   created_at: string
 }
 
@@ -92,13 +93,14 @@ export function AdminDashboard() {
         .eq('type', 'scarico')
         .gte('created_at', monthStart.toISOString())
 
-      // Fetch recent movements with product and worksite names
+      // Fetch recent movements with product, worksite, and operator names
       const { data: recentMov } = await supabase
         .from('movements')
         .select(`
           id, type, quantity, created_at,
           products(name),
-          worksites(name)
+          worksites(name),
+          profiles:operator_id(full_name)
         `)
         .order('created_at', { ascending: false })
         .limit(5)
@@ -121,6 +123,7 @@ export function AdminDashboard() {
         product_name: m.products?.name || 'Prodotto',
         quantity: m.quantity,
         worksite_name: m.worksites?.name,
+        operator_name: m.profiles?.full_name,
         created_at: m.created_at
       }))
 
@@ -195,7 +198,7 @@ export function AdminDashboard() {
           backgroundSize: '180px'
         }} />
 
-        <div className="relative px-5 pt-14 pb-8">
+        <div className="relative px-5 pt-14 pb-8 max-w-4xl mx-auto">
           {/* Logo e Titolo */}
           <div className="flex items-center gap-3 mb-6">
             <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
@@ -247,8 +250,8 @@ export function AdminDashboard() {
       </header>
 
       {/* Stats Cards */}
-      <div className="px-5 -mt-2">
-        <div className="grid grid-cols-4 gap-2">
+      <div className="px-5 -mt-2 max-w-4xl mx-auto">
+        <div className="grid grid-cols-4 gap-2 lg:gap-3">
           <div className="stat-card text-center animate-slide-up" style={{ animationDelay: '0.05s' }}>
             <Boxes className="w-5 h-5 text-sky-500 mx-auto mb-1" />
             <p className="text-xl font-bold text-gray-900">{stats?.totalProducts || 0}</p>
@@ -275,16 +278,16 @@ export function AdminDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="px-5 mt-6">
+      <div className="px-5 mt-6 max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-gray-900">Azioni Rapide</h2>
           <Zap className="w-4 h-4 text-amber-500" />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Link
             href="/movimenti/carico"
-            className="action-card flex-col items-start animate-slide-up"
+            className="action-card flex-col items-start lg:items-center lg:text-center animate-slide-up"
             style={{ animationDelay: '0.25s' }}
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
@@ -298,7 +301,7 @@ export function AdminDashboard() {
 
           <Link
             href="/movimenti/scarico"
-            className="action-card flex-col items-start animate-slide-up"
+            className="action-card flex-col items-start lg:items-center lg:text-center animate-slide-up"
             style={{ animationDelay: '0.3s' }}
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
@@ -312,7 +315,7 @@ export function AdminDashboard() {
 
           <Link
             href="/prodotti"
-            className="action-card flex-col items-start animate-slide-up"
+            className="action-card flex-col items-start lg:items-center lg:text-center animate-slide-up"
             style={{ animationDelay: '0.35s' }}
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
@@ -326,7 +329,7 @@ export function AdminDashboard() {
 
           <Link
             href="/cantieri"
-            className="action-card flex-col items-start animate-slide-up"
+            className="action-card flex-col items-start lg:items-center lg:text-center animate-slide-up"
             style={{ animationDelay: '0.4s' }}
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
@@ -342,7 +345,7 @@ export function AdminDashboard() {
 
       {/* Low Stock Alert */}
       {lowStock.length > 0 && (
-        <div className="px-5 mt-6 animate-slide-up" style={{ animationDelay: '0.45s' }}>
+        <div className="px-5 mt-6 max-w-4xl mx-auto animate-slide-up" style={{ animationDelay: '0.45s' }}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -379,7 +382,7 @@ export function AdminDashboard() {
 
       {/* Recent Activity */}
       {stats?.recentMovements && stats.recentMovements.length > 0 && (
-        <div className="px-5 mt-6 mb-6 animate-slide-up" style={{ animationDelay: '0.5s' }}>
+        <div className="px-5 mt-6 mb-6 max-w-4xl mx-auto animate-slide-up" style={{ animationDelay: '0.5s' }}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-gray-900">Attività Recente</h2>
             <Link href="/movimenti" className="text-xs text-sky-600 font-medium">
@@ -406,7 +409,9 @@ export function AdminDashboard() {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 text-sm truncate">{mov.product_name}</p>
                   <p className="text-xs text-gray-500">
-                    {mov.type === 'carico' ? '+' : '-'}{mov.quantity} {mov.worksite_name && `• ${mov.worksite_name}`}
+                    {mov.type === 'carico' ? '+' : '-'}{mov.quantity}
+                    {mov.worksite_name && ` • ${mov.worksite_name}`}
+                    {mov.operator_name && ` • ${mov.operator_name}`}
                   </p>
                 </div>
                 <span className="text-xs text-gray-400">{formatTimeAgo(mov.created_at)}</span>
@@ -418,7 +423,7 @@ export function AdminDashboard() {
 
       {/* Admin-only: Reports link */}
       {isSuperuser && (
-        <div className="px-5 mb-6 animate-slide-up" style={{ animationDelay: '0.55s' }}>
+        <div className="px-5 mb-6 max-w-4xl mx-auto animate-slide-up" style={{ animationDelay: '0.55s' }}>
           <Link
             href="/report"
             className="flex items-center gap-4 p-4 bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl shadow-lg"
