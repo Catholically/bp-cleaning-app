@@ -17,7 +17,7 @@ import {
   Euro,
   Boxes,
   Clock,
-  Zap,
+  Plus,
   BarChart3
 } from 'lucide-react'
 import Link from 'next/link'
@@ -277,71 +277,40 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="px-5 mt-6 max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-gray-900">Azioni Rapide</h2>
-          <Zap className="w-4 h-4 text-amber-500" />
+      {/* Quick Actions - Admin only */}
+      {isSuperuser && (
+        <div className="px-5 mt-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 gap-3">
+            <Link
+              href="/prodotti/nuovo"
+              className="action-card flex items-center gap-3 animate-slide-up"
+              style={{ animationDelay: '0.25s' }}
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
+                <Plus className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Prodotto</h3>
+                <p className="text-xs text-gray-500">Aggiungi nuovo</p>
+              </div>
+            </Link>
+
+            <Link
+              href="/cantieri/nuovo"
+              className="action-card flex items-center gap-3 animate-slide-up"
+              style={{ animationDelay: '0.3s' }}
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
+                <Plus className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Cantiere</h3>
+                <p className="text-xs text-gray-500">Aggiungi nuovo</p>
+              </div>
+            </Link>
+          </div>
         </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <Link
-            href="/movimenti/carico"
-            className="action-card flex-col items-start lg:items-center lg:text-center animate-slide-up"
-            style={{ animationDelay: '0.25s' }}
-          >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <ArrowDownToLine className="w-5 h-5 text-white" />
-            </div>
-            <div className="mt-3">
-              <h3 className="font-semibold text-gray-900">Carico</h3>
-              <p className="text-xs text-gray-500">Arrivo merce</p>
-            </div>
-          </Link>
-
-          <Link
-            href="/movimenti/scarico"
-            className="action-card flex-col items-start lg:items-center lg:text-center animate-slide-up"
-            style={{ animationDelay: '0.3s' }}
-          >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
-              <ArrowUpFromLine className="w-5 h-5 text-white" />
-            </div>
-            <div className="mt-3">
-              <h3 className="font-semibold text-gray-900">Scarico</h3>
-              <p className="text-xs text-gray-500">Per cantiere</p>
-            </div>
-          </Link>
-
-          <Link
-            href="/prodotti"
-            className="action-card flex-col items-start lg:items-center lg:text-center animate-slide-up"
-            style={{ animationDelay: '0.35s' }}
-          >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
-              <Package className="w-5 h-5 text-white" />
-            </div>
-            <div className="mt-3">
-              <h3 className="font-semibold text-gray-900">Prodotti</h3>
-              <p className="text-xs text-gray-500">Inventario</p>
-            </div>
-          </Link>
-
-          <Link
-            href="/cantieri"
-            className="action-card flex-col items-start lg:items-center lg:text-center animate-slide-up"
-            style={{ animationDelay: '0.4s' }}
-          >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-              <Building2 className="w-5 h-5 text-white" />
-            </div>
-            <div className="mt-3">
-              <h3 className="font-semibold text-gray-900">Cantieri</h3>
-              <p className="text-xs text-gray-500">Gestione</p>
-            </div>
-          </Link>
-        </div>
-      </div>
+      )}
 
       {/* Low Stock Alert */}
       {lowStock.length > 0 && (
