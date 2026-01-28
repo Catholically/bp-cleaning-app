@@ -40,12 +40,24 @@ const GAP_V = 0
 const DYMO_WIDTH = 25.4
 const DYMO_HEIGHT = 25.4
 
+// Avery Small / DYMO 48.5mm x 25.4mm (tipo Avery L4731 - 84 etichette per foglio)
+// 4 colonne x 21 righe
+const SMALL_LABELS_PER_ROW = 4
+const SMALL_LABELS_PER_COL = 21
+const SMALL_LABELS_PER_PAGE = SMALL_LABELS_PER_ROW * SMALL_LABELS_PER_COL
+const SMALL_LABEL_WIDTH = 48.5
+const SMALL_LABEL_HEIGHT = 25.4
+const SMALL_MARGIN_LEFT = 6.8
+const SMALL_MARGIN_TOP = 8.8
+const SMALL_GAP_H = 0
+const SMALL_GAP_V = 0
+
 interface ProductWithQuantity extends Product {
   printQuantity: number
   selected: boolean
 }
 
-type PrintMode = 'avery' | 'dymo'
+type PrintMode = 'avery' | 'dymo' | 'small'
 
 export default function EtichettePage() {
   const [products, setProducts] = useState<ProductWithQuantity[]>([])
@@ -403,6 +415,100 @@ export default function EtichettePage() {
     }
   }
 
+  async function generateSmallPDF() {
+    if (selectedProducts.length === 0) return
+
+    setGenerating(true)
+
+    try {
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      })
+
+      // Prepara lista etichette da stampare
+      const labelsToPrint: ProductWithQuantity[] = []
+      selectedProducts.forEach(p => {
+        for (let i = 0; i < p.printQuantity; i++) {
+          labelsToPrint.push(p)
+        }
+      })
+
+      let currentPage = 0
+      let labelIndex = 0
+
+      for (const product of labelsToPrint) {
+        const pageIndex = Math.floor(labelIndex / SMALL_LABELS_PER_PAGE)
+        const positionOnPage = labelIndex % SMALL_LABELS_PER_PAGE
+        const col = positionOnPage % SMALL_LABELS_PER_ROW
+        const row = Math.floor(positionOnPage / SMALL_LABELS_PER_ROW)
+
+        // Nuova pagina se necessario
+        if (pageIndex > currentPage) {
+          pdf.addPage()
+          currentPage = pageIndex
+        }
+
+        // Calcola posizione etichetta
+        const x = SMALL_MARGIN_LEFT + col * (SMALL_LABEL_WIDTH + SMALL_GAP_H)
+        const y = SMALL_MARGIN_TOP + row * (SMALL_LABEL_HEIGHT + SMALL_GAP_V)
+
+        // Disegna etichetta
+        drawSmallLabel(pdf, product, x, y)
+
+        labelIndex++
+      }
+
+      // Salva PDF
+      const date = new Date().toISOString().slice(0, 10)
+      pdf.save(`etichette-small-${date}.pdf`)
+
+    } catch (error) {
+      console.error('Errore generazione PDF:', error)
+      alert('Errore nella generazione del PDF')
+    }
+
+    setGenerating(false)
+  }
+
+  function drawSmallLabel(pdf: jsPDF, product: ProductWithQuantity, x: number, y: number) {
+    const padding = 2
+
+    // SKU in alto a sinistra (bold)
+    pdf.setFontSize(10)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text(product.sku || '', x + padding, y + 5)
+
+    // Unità in alto a destra
+    pdf.setFontSize(8)
+    pdf.setFont('helvetica', 'normal')
+    const unitText = `${product.quantity_per_package} ${product.unit}`
+    const unitWidth = pdf.getTextWidth(unitText)
+    pdf.text(unitText, x + SMALL_LABEL_WIDTH - padding - unitWidth, y + 5)
+
+    // Nome prodotto (troncato se troppo lungo)
+    pdf.setFontSize(7)
+    let name = product.name
+    const maxWidth = SMALL_LABEL_WIDTH - padding * 2
+    while (pdf.getTextWidth(name) > maxWidth && name.length > 10) {
+      name = name.slice(0, -4) + '...'
+    }
+    pdf.text(name, x + padding, y + 10)
+
+    // Barcode - più grande per etichetta più larga
+    if (product.barcode) {
+      const barcodeDataURL = generateBarcodeDataURL(product.barcode)
+      if (barcodeDataURL) {
+        const barcodeWidth = 42
+        const barcodeHeight = 12
+        const barcodeX = x + (SMALL_LABEL_WIDTH - barcodeWidth) / 2
+        const barcodeY = y + 11.5
+        pdf.addImage(barcodeDataURL, 'PNG', barcodeX, barcodeY, barcodeWidth, barcodeHeight)
+      }
+    }
+  }
+
   function selectProductForDymo(product: Product) {
     setCustomBarcode(product.sku || product.barcode || '')
     setCustomText(product.name.substring(0, 20))
@@ -433,7 +539,7 @@ export default function EtichettePage() {
                 Stampa Etichette
               </h1>
               <p className="text-sky-100 text-sm">
-                {printMode === 'dymo' ? 'DYMO 1"x1" - Code 128' : 'Foglio A4 Avery'}
+                {printMode === 'dymo' ? 'DYMO 1"x1" - Code 128' : printMode === 'small' ? '48.5x25.4mm - 84 per foglio' : 'Foglio A4 - 65 per foglio'}
               </p>
             </div>
           </div>
@@ -450,6 +556,17 @@ export default function EtichettePage() {
             >
               <QrCode className="w-4 h-4" />
               DYMO 1"x1"
+            </button>
+            <button
+              onClick={() => setPrintMode('small')}
+              className={`flex-1 py-2.5 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors ${
+                printMode === 'small'
+                  ? 'bg-white text-sky-600'
+                  : 'bg-white/20 hover:bg-white/30'
+              }`}
+            >
+              <Tag className="w-4 h-4" />
+              48.5x25.4
             </button>
             <button
               onClick={() => setPrintMode('avery')}
@@ -539,7 +656,7 @@ export default function EtichettePage() {
               </div>
             </div>
           ) : (
-            /* Avery Mode Header */
+            /* Avery / Small Mode Header */
             <>
               <div className="grid grid-cols-3 gap-3">
                 <div className="bg-white/20 rounded-xl p-3 text-center">
@@ -551,13 +668,13 @@ export default function EtichettePage() {
                   <div className="text-xs text-sky-100">Etichette</div>
                 </div>
                 <div className="bg-white/20 rounded-xl p-3 text-center">
-                  <div className="text-2xl font-bold">{Math.ceil(totalLabels / LABELS_PER_PAGE)}</div>
+                  <div className="text-2xl font-bold">{Math.ceil(totalLabels / (printMode === 'small' ? SMALL_LABELS_PER_PAGE : LABELS_PER_PAGE))}</div>
                   <div className="text-xs text-sky-100">Pagine A4</div>
                 </div>
               </div>
 
               <button
-                onClick={generatePDF}
+                onClick={() => printMode === 'small' ? generateSmallPDF() : generatePDF()}
                 disabled={generating || selectedProducts.length === 0}
                 className="w-full mt-4 bg-white text-sky-600 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-sky-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-lg"
               >

@@ -239,7 +239,7 @@ export function AdminDashboard() {
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
               <div className="flex items-center gap-2 mb-1">
                 <Activity className="w-4 h-4 text-sky-200" />
-                <span className="text-sky-200 text-xs font-medium">Spesa Mese</span>
+                <span className="text-sky-200 text-xs font-medium">Spesa {new Date().toLocaleDateString('it-IT', { month: 'long' }).charAt(0).toUpperCase() + new Date().toLocaleDateString('it-IT', { month: 'long' }).slice(1)}</span>
               </div>
               <p className="text-white text-2xl font-bold number-animate">
                 {formatCurrency(stats?.monthlySpend || 0)}
@@ -252,28 +252,28 @@ export function AdminDashboard() {
       {/* Stats Cards */}
       <div className="px-5 -mt-2 max-w-4xl mx-auto">
         <div className="grid grid-cols-4 gap-2 lg:gap-3">
-          <div className="stat-card text-center animate-slide-up" style={{ animationDelay: '0.05s' }}>
+          <Link href="/prodotti" className="stat-card text-center animate-slide-up hover:shadow-md hover:scale-[1.02] transition-all" style={{ animationDelay: '0.05s' }}>
             <Boxes className="w-5 h-5 text-sky-500 mx-auto mb-1" />
             <p className="text-xl font-bold text-gray-900">{stats?.totalProducts || 0}</p>
             <p className="text-xs text-gray-500">Prodotti</p>
-          </div>
-          <div className="stat-card text-center animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          </Link>
+          <Link href="/cantieri" className="stat-card text-center animate-slide-up hover:shadow-md hover:scale-[1.02] transition-all" style={{ animationDelay: '0.1s' }}>
             <Building2 className="w-5 h-5 text-violet-500 mx-auto mb-1" />
             <p className="text-xl font-bold text-gray-900">{stats?.activeWorksites || 0}</p>
             <p className="text-xs text-gray-500">Cantieri</p>
-          </div>
-          <div className="stat-card text-center animate-slide-up" style={{ animationDelay: '0.15s' }}>
+          </Link>
+          <Link href="/movimenti" className="stat-card text-center animate-slide-up hover:shadow-md hover:scale-[1.02] transition-all" style={{ animationDelay: '0.15s' }}>
             <Clock className="w-5 h-5 text-emerald-500 mx-auto mb-1" />
             <p className="text-xl font-bold text-gray-900">{stats?.todayMovements || 0}</p>
             <p className="text-xs text-gray-500">Oggi</p>
-          </div>
-          <div className="stat-card text-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          </Link>
+          <Link href="/prodotti?filter=low" className="stat-card text-center animate-slide-up hover:shadow-md hover:scale-[1.02] transition-all" style={{ animationDelay: '0.2s' }}>
             <AlertTriangle className={`w-5 h-5 mx-auto mb-1 ${(stats?.lowStockCount || 0) > 0 ? 'text-red-500' : 'text-gray-300'}`} />
             <p className={`text-xl font-bold ${(stats?.lowStockCount || 0) > 0 ? 'text-red-500' : 'text-gray-900'}`}>
               {stats?.lowStockCount || 0}
             </p>
             <p className="text-xs text-gray-500">Riordino</p>
-          </div>
+          </Link>
         </div>
       </div>
 
