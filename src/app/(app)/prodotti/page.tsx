@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState, useMemo, Suspense } from 'react'
+import { useEffect, useState, useMemo, Suspense, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import { formatCurrency, formatNumber, cn } from '@/lib/utils'
 import { Product, ProductType, ProductCategory, CATEGORY_ICONS, CATEGORY_LABELS, CATEGORIES_BY_TYPE, filterProductsByType } from '@/lib/types'
-import { Search, Plus, Filter, Package, AlertTriangle, Check, Sparkles, Wrench, ChevronDown, ChevronUp, ChevronLeft } from 'lucide-react'
+import { Search, Plus, Filter, Package, AlertTriangle, Check, Sparkles, Wrench, ChevronDown, ChevronUp, ChevronLeft, ScanBarcode } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { useBarcodeScanner, useIsMobile } from '@/hooks/useBarcodeScanner'
 
 function ProductsContent() {
   const { isSuperuser } = useAuth()
@@ -20,7 +21,31 @@ function ProductsContent() {
   const [productType, setProductType] = useState<ProductType>('all')
   const [expandedType, setExpandedType] = useState<ProductType | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | null>(null)
+  const [scannerError, setScannerError] = useState<string | null>(null)
+  const [lastScannedBarcode, setLastScannedBarcode] = useState<string | null>(null)
   const supabase = createClient()
+  const isMobile = useIsMobile()
+
+  // Hook per pistola barcode USB - naviga al dettaglio prodotto
+  const handleUsbBarcodeScan = useCallback((barcode: string) => {
+    const foundProduct = products.find(p => p.barcode === barcode)
+    if (foundProduct) {
+      setLastScannedBarcode(barcode)
+      // Naviga al dettaglio dopo breve feedback visivo
+      setTimeout(() => {
+        router.push(`/prodotti/${foundProduct.id}`)
+      }, 300)
+    } else {
+      setScannerError(`Prodotto non trovato: ${barcode}`)
+      setTimeout(() => setScannerError(null), 3000)
+    }
+  }, [products, router])
+
+  useBarcodeScanner({
+    onScan: handleUsbBarcodeScan,
+    enabled: products.length > 0 && !isMobile,
+    minLength: 5,
+  })
 
   useEffect(() => {
     let isMounted = true
@@ -131,6 +156,41 @@ function ProductsContent() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 -mt-4 space-y-3">
+        {/* USB Barcode Scanner indicator - solo su desktop */}
+        {!isMobile && (
+          <div className={cn(
+            "flex items-center gap-3 p-3 rounded-xl border-2 transition-all",
+            lastScannedBarcode
+              ? "bg-emerald-50 border-emerald-500"
+              : scannerError
+                ? "bg-red-50 border-red-300"
+                : "bg-blue-50 border-blue-200"
+          )}>
+            <div className={cn(
+              "w-8 h-8 rounded-lg flex items-center justify-center",
+              lastScannedBarcode
+                ? "bg-emerald-500 text-white"
+                : scannerError
+                  ? "bg-red-500 text-white"
+                  : "bg-blue-500 text-white"
+            )}>
+              <ScanBarcode className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-700 truncate">
+                {lastScannedBarcode
+                  ? `Trovato: ${lastScannedBarcode}`
+                  : scannerError
+                    ? scannerError
+                    : 'Pistola barcode pronta'}
+              </p>
+            </div>
+            {lastScannedBarcode && (
+              <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+            )}
+          </div>
+        )}
+
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input

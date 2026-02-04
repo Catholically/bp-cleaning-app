@@ -20,11 +20,13 @@ import {
   ShieldAlert,
   Package,
   Sparkles,
-  Wrench
+  Wrench,
+  ScanBarcode
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from '@zxing/library'
+import { useBarcodeScanner, useIsMobile } from '@/hooks/useBarcodeScanner'
 
 function ScaricoContent() {
   const { user, profile, isManager, loading: authLoading } = useAuth()
@@ -54,6 +56,29 @@ function ScaricoContent() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null)
   const supabase = createClient()
+  const [lastScannedBarcode, setLastScannedBarcode] = useState<string | null>(null)
+  const isMobile = useIsMobile()
+
+  // Hook per pistola barcode USB (funziona quando non c'è focus su input)
+  const handleUsbBarcodeScan = useCallback((barcode: string) => {
+    // Trova prodotto per barcode
+    const foundProduct = products.find(p => p.barcode === barcode)
+    if (foundProduct) {
+      setSelectedProduct(foundProduct)
+      setLastScannedBarcode(barcode)
+      // Feedback visivo
+      setTimeout(() => setLastScannedBarcode(null), 2000)
+    } else {
+      setScannerError(`Prodotto non trovato: ${barcode}`)
+      setTimeout(() => setScannerError(null), 3000)
+    }
+  }, [products])
+
+  useBarcodeScanner({
+    onScan: handleUsbBarcodeScan,
+    enabled: !selectedProduct && !showScanner && products.length > 0 && !isMobile,
+    minLength: 5,
+  })
 
   // Redirect managers - they cannot access movements
   useEffect(() => {
@@ -422,7 +447,37 @@ function ScaricoContent() {
         </header>
 
         <div className="max-w-4xl mx-auto px-4 -mt-4 space-y-4">
-          {/* Scanner area */}
+          {/* USB Barcode Scanner indicator - solo su desktop */}
+          {!isMobile && (
+            <div className={cn(
+              "flex items-center gap-3 p-4 rounded-2xl border-2 transition-all",
+              lastScannedBarcode
+                ? "bg-emerald-50 border-emerald-500"
+                : "bg-orange-50 border-orange-200"
+            )}>
+              <div className={cn(
+                "w-10 h-10 rounded-xl flex items-center justify-center",
+                lastScannedBarcode ? "bg-emerald-500 text-white" : "bg-orange-500 text-white"
+              )}>
+                <ScanBarcode className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">
+                  {lastScannedBarcode ? 'Barcode rilevato!' : 'Pistola barcode pronta'}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {lastScannedBarcode
+                    ? lastScannedBarcode
+                    : 'Scansiona un prodotto con la pistola USB'}
+                </p>
+              </div>
+              {lastScannedBarcode && (
+                <Check className="w-6 h-6 text-emerald-500" />
+              )}
+            </div>
+          )}
+
+          {/* Camera Scanner area */}
           {showScanner ? (
             <div className="relative h-48 sm:h-56 md:h-64 max-w-md mx-auto bg-gray-900 rounded-2xl overflow-hidden">
               <video
@@ -455,10 +510,15 @@ function ScaricoContent() {
           ) : (
             <button
               onClick={startScanner}
-              className="w-full h-32 sm:h-40 max-w-md mx-auto bg-gray-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-400 hover:bg-gray-700 transition-colors"
+              className={cn(
+                "w-full max-w-md mx-auto bg-gray-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-400 hover:bg-gray-700 transition-colors",
+                isMobile ? "h-32" : "h-24"
+              )}
             >
-              <Camera className="w-8 h-8" />
-              <span className="text-sm">Tocca per scansionare barcode</span>
+              <Camera className={isMobile ? "w-8 h-8" : "w-6 h-6"} />
+              <span className={isMobile ? "text-sm" : "text-xs"}>
+                {isMobile ? "Tocca per scansionare barcode" : "Oppure usa la fotocamera"}
+              </span>
             </button>
           )}
 
