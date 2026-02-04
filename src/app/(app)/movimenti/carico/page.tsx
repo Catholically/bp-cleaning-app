@@ -438,54 +438,51 @@ function CaricoContent() {
             </div>
           )}
 
-          {/* Camera Scanner area */}
-          {showScanner ? (
-            <div className="relative h-48 sm:h-56 md:h-64 max-w-md mx-auto bg-gray-900 rounded-2xl overflow-hidden">
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 border-2 border-cyan-400 rounded-xl relative">
-                  <div className="scanner-line" />
+          {/* Camera Scanner area - solo su mobile */}
+          {isMobile && (
+            showScanner ? (
+              <div className="relative h-48 bg-gray-900 rounded-2xl overflow-hidden">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-32 h-32 border-2 border-cyan-400 rounded-xl relative">
+                    <div className="scanner-line" />
+                  </div>
+                </div>
+                {scannerError && (
+                  <div className="absolute bottom-3 left-3 right-3 bg-red-500 text-white text-sm px-3 py-2 rounded-lg text-center">
+                    {scannerError}
+                  </div>
+                )}
+                <button
+                  onClick={stopScanner}
+                  className="absolute top-3 right-3 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center"
+                >
+                  <X className="w-4 h-4 text-white" />
+                </button>
+                <div className="absolute top-3 left-3 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                  Inquadra il barcode
                 </div>
               </div>
-              {scannerError && (
-                <div className="absolute bottom-3 left-3 right-3 bg-red-500 text-white text-sm px-3 py-2 rounded-lg text-center">
-                  {scannerError}
-                </div>
-              )}
+            ) : (
               <button
-                onClick={stopScanner}
-                className="absolute top-3 right-3 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center"
+                onClick={startScanner}
+                className="w-full h-32 bg-gray-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-400 hover:bg-gray-700 transition-colors"
               >
-                <X className="w-4 h-4 text-white" />
+                <Camera className="w-8 h-8" />
+                <span className="text-sm">Tocca per scansionare barcode</span>
               </button>
-              <div className="absolute top-3 left-3 bg-black/50 text-white text-xs px-2 py-1 rounded">
-                Inquadra il barcode
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={startScanner}
-              className={cn(
-                "w-full max-w-md mx-auto bg-gray-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-400 hover:bg-gray-700 transition-colors",
-                isMobile ? "h-32" : "h-24"
-              )}
-            >
-              <Camera className={isMobile ? "w-8 h-8" : "w-6 h-6"} />
-              <span className={isMobile ? "text-sm" : "text-xs"}>
-                {isMobile ? "Tocca per scansionare barcode" : "Oppure usa la fotocamera"}
-              </span>
-            </button>
+            )
           )}
 
           {/* Search */}
           <div>
-            <p className="text-sm text-gray-500 mb-2">Oppure cerca manualmente</p>
+            {isMobile && <p className="text-sm text-gray-500 mb-2">Oppure cerca manualmente</p>}
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input

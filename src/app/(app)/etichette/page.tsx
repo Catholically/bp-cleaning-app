@@ -153,18 +153,18 @@ function EtichetteContent() {
     ))
   }
 
-  function generateBarcodeDataURL(code: string, format: 'EAN13' | 'CODE128' = 'CODE128'): string {
+  function generateBarcodeDataURL(code: string, format: 'EAN13' | 'CODE128' = 'CODE128', scale: number = 3): string {
     const canvas = document.createElement('canvas')
     try {
       JsBarcode(canvas, code, {
         format: format,
-        width: 1.2,
-        height: 30,
+        width: 2 * scale,
+        height: 40 * scale,
         displayValue: true,
-        fontSize: 9,
-        margin: 2,
+        fontSize: 12 * scale,
+        margin: 4 * scale,
         background: '#ffffff',
-        textMargin: 1
+        textMargin: 2 * scale
       })
       return canvas.toDataURL('image/png')
     } catch {
@@ -274,17 +274,18 @@ function EtichetteContent() {
         const textValue = customText.trim()
 
         if (barcodeValue) {
-          // Genera barcode
+          // Genera barcode - alta risoluzione (4x)
+          const scale = 4
           const barcodeCanvas = document.createElement('canvas')
           JsBarcode(barcodeCanvas, barcodeValue, {
             format: 'CODE128',
-            width: 1.2,
-            height: 35,
+            width: 2 * scale,
+            height: 40 * scale,
             displayValue: true,
-            fontSize: 9,
-            margin: 0,
+            fontSize: 12 * scale,
+            margin: 2 * scale,
             background: '#ffffff',
-            textMargin: 1
+            textMargin: 2 * scale
           })
 
           const barcodeDataURL = barcodeCanvas.toDataURL('image/png')
@@ -352,19 +353,20 @@ function EtichetteContent() {
       labelsToPrint.forEach((product, i) => {
         if (i > 0) pdf.addPage([DYMO_WIDTH, DYMO_HEIGHT])
 
-        // Genera barcode Code 128 con SKU
+        // Genera barcode Code 128 con SKU - alta risoluzione (4x)
         const barcodeValue = product.sku || product.barcode || ''
         if (barcodeValue) {
+          const scale = 4
           const barcodeCanvas = document.createElement('canvas')
           JsBarcode(barcodeCanvas, barcodeValue, {
             format: 'CODE128',
-            width: 1.2,
-            height: 35,
+            width: 2 * scale,
+            height: 40 * scale,
             displayValue: true,
-            fontSize: 9,
-            margin: 0,
+            fontSize: 12 * scale,
+            margin: 2 * scale,
             background: '#ffffff',
-            textMargin: 1
+            textMargin: 2 * scale
           })
 
           const barcodeDataURL = barcodeCanvas.toDataURL('image/png')
@@ -481,9 +483,9 @@ function EtichetteContent() {
     }
     pdf.text(name, x + padding, y + 8)
 
-    // Barcode
+    // Barcode - alta risoluzione
     if (product.barcode) {
-      const barcodeDataURL = generateBarcodeDataURL(product.barcode)
+      const barcodeDataURL = generateBarcodeDataURL(product.barcode, 'CODE128', 4)
       if (barcodeDataURL) {
         const barcodeWidth = 32
         const barcodeHeight = 10
@@ -575,9 +577,9 @@ function EtichetteContent() {
     }
     pdf.text(name, x + padding, y + 10)
 
-    // Barcode - più grande per etichetta più larga
+    // Barcode - più grande per etichetta più larga, alta risoluzione
     if (product.barcode) {
-      const barcodeDataURL = generateBarcodeDataURL(product.barcode)
+      const barcodeDataURL = generateBarcodeDataURL(product.barcode, 'CODE128', 4)
       if (barcodeDataURL) {
         const barcodeWidth = 42
         const barcodeHeight = 12
