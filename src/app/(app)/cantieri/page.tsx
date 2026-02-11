@@ -6,12 +6,13 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import { formatCurrency, cn } from '@/lib/utils'
 import { Worksite } from '@/lib/types'
-import { Building2, Plus, MapPin, Search, X, ChevronLeft, Loader2 } from 'lucide-react'
+import { Building2, Plus, MapPin, Search, X, ChevronLeft, Loader2, Users, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 interface WorksiteWithCosts extends Worksite {
   monthly_cost?: number
+  workers?: Array<{ id: string; full_name: string }>
 }
 
 function CantieriContent() {
@@ -25,6 +26,7 @@ function CantieriContent() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedGroup, setSelectedGroup] = useState('')
+  const [expandedWorksites, setExpandedWorksites] = useState<Set<string>>(new Set())
   const supabase = createClient()
 
   useEffect(() => {
@@ -58,12 +60,44 @@ function CantieriContent() {
         return acc
       }, {} as Record<string, number>)
 
+      // Get workers for each worksite
+      const { data: assignmentsData } = await supabase
+        .from('worker_assignments')
+        .select(`
+          worksite_id,
+          workers (
+            id,
+            full_name
+          )
+        `)
+
+      const workersByWorksite = (assignmentsData || []).reduce((acc: Record<string, any[]>, a: any) => {
+        if (a.worksite_id && a.workers) {
+          if (!acc[a.worksite_id]) acc[a.worksite_id] = []
+          acc[a.worksite_id].push(a.workers)
+        }
+        return acc
+      }, {} as Record<string, any[]>)
+
       setWorksites(wsData.map((ws: Worksite) => ({
         ...ws,
-        monthly_cost: costsByWorksite[ws.id] || 0
+        monthly_cost: costsByWorksite[ws.id] || 0,
+        workers: workersByWorksite[ws.id] || []
       })))
     }
     setLoading(false)
+  }
+
+  const toggleWorksiteExpansion = (id: string) => {
+    setExpandedWorksites(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
   }
 
   // Get unique groups
@@ -152,29 +186,70 @@ function CantieriContent() {
             Attivi ({activeWorksites.length})
           </h3>
           <div className="space-y-3">
-            {activeWorksites.map((ws, index) => (
-              <Link
-                key={ws.id}
-                href={`/cantieri/${ws.id}`}
-                className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 block animate-slide-up"
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <span className="badge-info text-xs">{ws.code}</span>
-                    <h3 className="font-semibold text-gray-900 mt-1">{ws.name}</h3>
-                  </div>
-                  <p className="text-xl font-bold text-violet-600">
-                    {formatCurrency(ws.monthly_cost || 0)}
-                  </p>
+            {activeWorksites.map((ws, index) => {
+              const isExpanded = expandedWorksites.has(ws.id)
+              const hasWorkers = ws.workers && ws.workers.length > 0
+
+              return (
+                <div
+                  key={ws.id}
+                  className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 animate-slide-up"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <Link href={`/cantieri/${ws.id}`} className="block">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <span className="badge-info text-xs">{ws.code}</span>
+                        <h3 className="font-semibold text-gray-900 mt-1">{ws.name}</h3>
+                      </div>
+                      <p className="text-xl font-bold text-violet-600">
+                        {formatCurrency(ws.monthly_cost || 0)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 text-sm text-gray-500">
+                      <MapPin className="w-4 h-4" />
+                      {ws.address}, {ws.city}
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">questo mese</p>
+                  </Link>
+
+                  {/* Workers section */}
+                  {hasWorkers && (
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault()
+                          toggleWorksiteExpansion(ws.id)
+                        }}
+                        className="w-full flex items-center justify-between text-sm font-medium text-gray-700 hover:text-violet-600 transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          <span>{ws.workers!.length} {ws.workers!.length === 1 ? 'lavoratore' : 'lavoratori'}</span>
+                        </div>
+                        <ChevronDown className={cn(
+                          "w-4 h-4 transition-transform",
+                          isExpanded && "rotate-180"
+                        )} />
+                      </button>
+
+                      {isExpanded && (
+                        <div className="mt-2 space-y-1 animate-fade-in">
+                          {ws.workers!.map((worker) => (
+                            <div
+                              key={worker.id}
+                              className="text-sm text-gray-600 pl-6 py-1"
+                            >
+                              • {worker.full_name}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-1 text-sm text-gray-500">
-                  <MapPin className="w-4 h-4" />
-                  {ws.address}, {ws.city}
-                </div>
-                <p className="text-xs text-gray-400 mt-1">questo mese</p>
-              </Link>
-            ))}
+              )
+            })}
           </div>
         </div>
 

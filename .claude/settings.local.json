@@ -45,7 +45,10 @@
       "Bash(python3:*)",
       "Bash(git mv:*)",
       "Bash(npm audit:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(python:*)",
+      "Bash(split:*)",
+      "Bash(node -e:*)"
     ]
   }
 }
