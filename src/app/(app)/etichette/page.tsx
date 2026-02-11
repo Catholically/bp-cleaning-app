@@ -335,19 +335,13 @@ function EtichetteContent() {
     setGenerating(true)
 
     try {
-      // PDF A4 portrait per flusso continuo verticale
+      // PDF con pagine dimensione etichetta DYMO 1"x1" (25.4mm x 25.4mm)
+      // Per stampante a rotolo continuo
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: 'a4'
+        format: [DYMO_WIDTH, DYMO_HEIGHT]
       })
-
-      const MARGIN_TOP = 5  // Margine superiore prima etichetta
-      const GAP = 2         // Spazio tra etichette
-      const A4_HEIGHT = 297 // Altezza pagina A4 in mm
-      const X_OFFSET = 5    // Offset orizzontale per centrare
-
-      let yPosition = MARGIN_TOP
 
       // Prepara lista etichette da stampare
       const labelsToPrint: ProductWithQuantity[] = []
@@ -358,11 +352,8 @@ function EtichetteContent() {
       })
 
       labelsToPrint.forEach((product, i) => {
-        // Controlla se serve nuova pagina
-        if (yPosition + DYMO_HEIGHT > A4_HEIGHT - 5) {
-          pdf.addPage('a4', 'portrait')
-          yPosition = MARGIN_TOP
-        }
+        // Nuova pagina per ogni etichetta (dopo la prima)
+        if (i > 0) pdf.addPage([DYMO_WIDTH, DYMO_HEIGHT])
 
         // Genera barcode Code 128 con SKU - alta risoluzione (4x)
         const barcodeValue = product.sku || product.barcode || ''
@@ -388,21 +379,18 @@ function EtichetteContent() {
           const barcodeWidth = Math.min(maxBarcodeWidth, DYMO_WIDTH - 2)
           const barcodeHeight = barcodeWidth * barcodeAspect
 
-          const x = X_OFFSET + (DYMO_WIDTH - barcodeWidth) / 2
+          const x = (DYMO_WIDTH - barcodeWidth) / 2
+          const y = 1.5
 
-          // Disegna barcode alla posizione verticale corrente
-          pdf.addImage(barcodeDataURL, 'PNG', x, yPosition + 1.5, barcodeWidth, barcodeHeight)
+          pdf.addImage(barcodeDataURL, 'PNG', x, y, barcodeWidth, barcodeHeight)
 
-          // Nome prodotto sotto (troncato)
+          // Nome prodotto sotto (troncato a 18 caratteri)
           const productName = product.name.substring(0, 18)
           pdf.setFontSize(6)
           pdf.setFont('helvetica', 'bold')
           const textWidth = pdf.getTextWidth(productName)
-          pdf.text(productName, X_OFFSET + (DYMO_WIDTH - textWidth) / 2, yPosition + DYMO_HEIGHT - 1.5)
+          pdf.text(productName, (DYMO_WIDTH - textWidth) / 2, DYMO_HEIGHT - 1.5)
         }
-
-        // Incrementa posizione verticale per prossima etichetta
-        yPosition += DYMO_HEIGHT + GAP
       })
 
       const date = new Date().toISOString().slice(0, 10)
@@ -516,10 +504,12 @@ function EtichetteContent() {
     setGenerating(true)
 
     try {
+      // PDF con pagine dimensione etichetta DYMO 1.91"x1" (48.5mm x 25.4mm)
+      // Per stampante a rotolo continuo
       const pdf = new jsPDF({
-        orientation: 'portrait',
+        orientation: 'landscape',
         unit: 'mm',
-        format: 'a4'
+        format: [SMALL_LABEL_HEIGHT, SMALL_LABEL_WIDTH]
       })
 
       // Prepara lista etichette da stampare
@@ -530,34 +520,17 @@ function EtichetteContent() {
         }
       })
 
-      let currentPage = 0
-      let labelIndex = 0
+      labelsToPrint.forEach((product, i) => {
+        // Nuova pagina per ogni etichetta (dopo la prima)
+        if (i > 0) pdf.addPage([SMALL_LABEL_HEIGHT, SMALL_LABEL_WIDTH], 'landscape')
 
-      for (const product of labelsToPrint) {
-        const pageIndex = Math.floor(labelIndex / SMALL_LABELS_PER_PAGE)
-        const positionOnPage = labelIndex % SMALL_LABELS_PER_PAGE
-        const col = positionOnPage % SMALL_LABELS_PER_ROW
-        const row = Math.floor(positionOnPage / SMALL_LABELS_PER_ROW)
-
-        // Nuova pagina se necessario
-        if (pageIndex > currentPage) {
-          pdf.addPage()
-          currentPage = pageIndex
-        }
-
-        // Calcola posizione etichetta
-        const x = SMALL_MARGIN_LEFT + col * (SMALL_LABEL_WIDTH + SMALL_GAP_H)
-        const y = SMALL_MARGIN_TOP + row * (SMALL_LABEL_HEIGHT + SMALL_GAP_V)
-
-        // Disegna etichetta
-        drawSmallLabel(pdf, product, x, y)
-
-        labelIndex++
-      }
+        // Disegna etichetta alla posizione 0,0 (riempi pagina intera)
+        drawSmallLabelForRoll(pdf, product, 0, 0)
+      })
 
       // Salva PDF
       const date = new Date().toISOString().slice(0, 10)
-      pdf.save(`etichette-small-${date}.pdf`)
+      pdf.save(`dymo-small-${date}.pdf`)
 
     } catch (error) {
       console.error('Errore generazione PDF:', error)
@@ -599,6 +572,44 @@ function EtichetteContent() {
         const barcodeHeight = 12
         const barcodeX = x + (SMALL_LABEL_WIDTH - barcodeWidth) / 2
         const barcodeY = y + 11.5
+        pdf.addImage(barcodeDataURL, 'PNG', barcodeX, barcodeY, barcodeWidth, barcodeHeight)
+      }
+    }
+  }
+
+  function drawSmallLabelForRoll(pdf: jsPDF, product: ProductWithQuantity, x: number, y: number) {
+    const padding = 2
+
+    // SKU in alto a sinistra (bold)
+    pdf.setFontSize(10)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text(product.sku || '', x + padding, y + 5)
+
+    // Unità in alto a destra
+    pdf.setFontSize(8)
+    pdf.setFont('helvetica', 'normal')
+    const unitText = `${product.quantity_per_package} ${product.unit}`
+    const unitWidth = pdf.getTextWidth(unitText)
+    pdf.text(unitText, x + SMALL_LABEL_WIDTH - padding - unitWidth, y + 5)
+
+    // Nome prodotto (troncato se troppo lungo)
+    pdf.setFontSize(7)
+    pdf.setFont('helvetica', 'bold')
+    let name = product.name
+    const maxWidth = SMALL_LABEL_WIDTH - padding * 2
+    while (pdf.getTextWidth(name) > maxWidth && name.length > 10) {
+      name = name.slice(0, -4) + '...'
+    }
+    pdf.text(name, x + padding, y + 10)
+
+    // Barcode Code 128 - alta risoluzione
+    if (product.barcode) {
+      const barcodeDataURL = generateBarcodeDataURL(product.barcode, 'CODE128', 4)
+      if (barcodeDataURL) {
+        const barcodeWidth = 40
+        const barcodeHeight = 12
+        const barcodeX = x + (SMALL_LABEL_WIDTH - barcodeWidth) / 2
+        const barcodeY = y + 11
         pdf.addImage(barcodeDataURL, 'PNG', barcodeX, barcodeY, barcodeWidth, barcodeHeight)
       }
     }
