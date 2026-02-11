@@ -24,6 +24,7 @@ function CantieriContent() {
   const [worksites, setWorksites] = useState<WorksiteWithCosts[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedGroup, setSelectedGroup] = useState('')
   const supabase = createClient()
 
   useEffect(() => {
@@ -65,16 +66,19 @@ function CantieriContent() {
     setLoading(false)
   }
 
-  // Filter worksites by search query
+  // Get unique groups
+  const groups = [...new Set(worksites.map(w => w.client_group).filter(Boolean))].sort()
+
+  // Filter worksites by search query and group
   const filteredWorksites = worksites.filter(w => {
-    if (!searchQuery.trim()) return true
-    const query = searchQuery.toLowerCase()
-    return (
-      w.name.toLowerCase().includes(query) ||
-      w.code.toLowerCase().includes(query) ||
-      w.address?.toLowerCase().includes(query) ||
-      w.city?.toLowerCase().includes(query)
+    const matchesSearch = !searchQuery.trim() || (
+      w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      w.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      w.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      w.city?.toLowerCase().includes(searchQuery.toLowerCase())
     )
+    const matchesGroup = !selectedGroup || w.client_group === selectedGroup
+    return matchesSearch && matchesGroup
   })
 
   const activeWorksites = filteredWorksites.filter(w => w.status === 'active')
@@ -122,6 +126,22 @@ function CantieriContent() {
             </button>
           )}
         </div>
+
+        {/* Group filter */}
+        {groups.length > 0 && (
+          <div>
+            <select
+              value={selectedGroup}
+              onChange={(e) => setSelectedGroup(e.target.value)}
+              className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+            >
+              <option value="">Tutti i gruppi</option>
+              {groups.map(group => (
+                <option key={group} value={group} className="text-gray-900">{group}</option>
+              ))}
+            </select>
+          </div>
+        )}
         </div>
       </header>
 

@@ -335,12 +335,19 @@ function EtichetteContent() {
     setGenerating(true)
 
     try {
-      // PDF dimensione DYMO 1x1" (25.4mm x 25.4mm)
+      // PDF A4 portrait per flusso continuo verticale
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: [DYMO_WIDTH, DYMO_HEIGHT]
+        format: 'a4'
       })
+
+      const MARGIN_TOP = 5  // Margine superiore prima etichetta
+      const GAP = 2         // Spazio tra etichette
+      const A4_HEIGHT = 297 // Altezza pagina A4 in mm
+      const X_OFFSET = 5    // Offset orizzontale per centrare
+
+      let yPosition = MARGIN_TOP
 
       // Prepara lista etichette da stampare
       const labelsToPrint: ProductWithQuantity[] = []
@@ -351,7 +358,11 @@ function EtichetteContent() {
       })
 
       labelsToPrint.forEach((product, i) => {
-        if (i > 0) pdf.addPage([DYMO_WIDTH, DYMO_HEIGHT])
+        // Controlla se serve nuova pagina
+        if (yPosition + DYMO_HEIGHT > A4_HEIGHT - 5) {
+          pdf.addPage('a4', 'portrait')
+          yPosition = MARGIN_TOP
+        }
 
         // Genera barcode Code 128 con SKU - alta risoluzione (4x)
         const barcodeValue = product.sku || product.barcode || ''
@@ -377,18 +388,21 @@ function EtichetteContent() {
           const barcodeWidth = Math.min(maxBarcodeWidth, DYMO_WIDTH - 2)
           const barcodeHeight = barcodeWidth * barcodeAspect
 
-          const x = (DYMO_WIDTH - barcodeWidth) / 2
-          const y = 1.5
+          const x = X_OFFSET + (DYMO_WIDTH - barcodeWidth) / 2
 
-          pdf.addImage(barcodeDataURL, 'PNG', x, y, barcodeWidth, barcodeHeight)
+          // Disegna barcode alla posizione verticale corrente
+          pdf.addImage(barcodeDataURL, 'PNG', x, yPosition + 1.5, barcodeWidth, barcodeHeight)
 
           // Nome prodotto sotto (troncato)
           const productName = product.name.substring(0, 18)
           pdf.setFontSize(6)
           pdf.setFont('helvetica', 'bold')
           const textWidth = pdf.getTextWidth(productName)
-          pdf.text(productName, (DYMO_WIDTH - textWidth) / 2, DYMO_HEIGHT - 1.5)
+          pdf.text(productName, X_OFFSET + (DYMO_WIDTH - textWidth) / 2, yPosition + DYMO_HEIGHT - 1.5)
         }
+
+        // Incrementa posizione verticale per prossima etichetta
+        yPosition += DYMO_HEIGHT + GAP
       })
 
       const date = new Date().toISOString().slice(0, 10)

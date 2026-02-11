@@ -17,7 +17,8 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
-  Edit2
+  Edit2,
+  Tag
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -277,6 +278,16 @@ export default function CantiereDetailPage() {
                 <a href={`mailto:${worksite.client_email}`} className="text-sm text-violet-600">
                   {worksite.client_email}
                 </a>
+              </div>
+            )}
+
+            {worksite.client_group && (
+              <div className="flex items-center gap-3">
+                <Tag className="w-4 h-4 text-gray-400" />
+                <div>
+                  <p className="text-xs text-gray-500">Gruppo</p>
+                  <p className="text-sm text-gray-900">{worksite.client_group}</p>
+                </div>
               </div>
             )}
 

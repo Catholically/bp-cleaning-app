@@ -72,6 +72,7 @@ export interface Worksite {
   client_contact?: string
   client_phone?: string
   client_email?: string
+  client_group?: string
   budget_allocated: number
   start_date?: string
   end_date?: string
@@ -95,6 +96,7 @@ export interface Movement {
   operator_id: string
   operator?: Profile
   notes?: string
+  movement_date: string
   created_at: string
 }
 
@@ -160,6 +162,7 @@ export interface WorksiteFormData {
   city: string
   client_name?: string
   client_contact?: string
+  client_group?: string
   budget_allocated: number
   status: WorksiteStatus
   notes?: string
@@ -170,6 +173,7 @@ export interface MovementFormData {
   product_id: string
   worksite_id?: string
   quantity: number
+  movement_date?: string
   notes?: string
 }
 

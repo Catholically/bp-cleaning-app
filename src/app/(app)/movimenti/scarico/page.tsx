@@ -47,6 +47,7 @@ function ScaricoContent() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [selectedWorksite, setSelectedWorksite] = useState<Worksite | null>(null)
   const [quantity, setQuantity] = useState(1)
+  const [movementDate, setMovementDate] = useState(new Date().toISOString().split('T')[0])
   const [submitting, setSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [successData, setSuccessData] = useState<any>(null)
@@ -238,7 +239,8 @@ function ScaricoContent() {
         worksite_id: selectedWorksite.id,
         quantity: quantity,
         unit_cost_at_time: selectedProduct.unit_cost,
-        operator_id: user.id
+        operator_id: user.id,
+        movement_date: movementDate
       })
 
       if (error) throw error
@@ -254,6 +256,7 @@ function ScaricoContent() {
       // Reset
       setSelectedProduct(null)
       setQuantity(1)
+      setMovementDate(new Date().toISOString().split('T')[0])
       setSearch('')
     } catch (error) {
       console.error('Error:', error)
@@ -688,6 +691,20 @@ function ScaricoContent() {
           </div>
         </div>
 
+        {/* Date selector */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <label className="block text-xs text-gray-500 uppercase tracking-wider mb-2">
+            Data Movimento
+          </label>
+          <input
+            type="date"
+            value={movementDate}
+            onChange={(e) => setMovementDate(e.target.value)}
+            max={new Date().toISOString().split('T')[0]}
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-center text-lg font-semibold"
+          />
+        </div>
+
         {/* Quantity selector */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-4">Quantità da Scaricare</p>
@@ -739,6 +756,7 @@ function ScaricoContent() {
             onClick={() => {
               setSelectedProduct(null)
               setQuantity(1)
+              setMovementDate(new Date().toISOString().split('T')[0])
             }}
             className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 focus:ring-gray-500 flex-1"
           >

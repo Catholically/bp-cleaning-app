@@ -36,6 +36,7 @@ export default function ModificaCantiereePage() {
   const [clientContact, setClientContact] = useState('')
   const [clientPhone, setClientPhone] = useState('')
   const [clientEmail, setClientEmail] = useState('')
+  const [clientGroup, setClientGroup] = useState('')
   const [codiceFiscale, setCodiceFiscale] = useState('')
   const [partitaIva, setPartitaIva] = useState('')
   const [budgetAllocated, setBudgetAllocated] = useState(0)
@@ -73,6 +74,7 @@ export default function ModificaCantiereePage() {
     setClientContact(data.client_contact || '')
     setClientPhone(data.client_phone || '')
     setClientEmail(data.client_email || '')
+    setClientGroup(data.client_group || '')
     setCodiceFiscale(data.codice_fiscale || '')
     setPartitaIva(data.partita_iva || '')
     setBudgetAllocated(data.budget_allocated || 0)
@@ -110,6 +112,7 @@ export default function ModificaCantiereePage() {
           client_contact: clientContact.trim() || null,
           client_phone: clientPhone.trim() || null,
           client_email: clientEmail.trim() || null,
+          client_group: clientGroup.trim() || null,
           codice_fiscale: codiceFiscale.trim() || null,
           partita_iva: partitaIva.trim() || null,
           budget_allocated: budgetAllocated,
@@ -404,6 +407,21 @@ export default function ModificaCantiereePage() {
                 className="w-full px-3 py-3 rounded-xl border border-gray-200 text-gray-900 font-mono focus:outline-none focus:ring-2 focus:ring-violet-500"
               />
             </div>
+          </div>
+
+          {/* Client Group */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Gruppo
+            </label>
+            <input
+              type="text"
+              value={clientGroup}
+              onChange={(e) => setClientGroup(e.target.value)}
+              placeholder="es. Milano Centro, Varese, Clienti VIP"
+              className="w-full px-3 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            />
+            <p className="mt-1 text-xs text-gray-500">Raggruppa cantieri per zona o categoria cliente</p>
           </div>
         </div>
 

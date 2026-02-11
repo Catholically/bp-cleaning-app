@@ -49,6 +49,7 @@ export default function MovimentiPage() {
         worksite:worksites(code, name),
         operator:profiles(full_name)
       `)
+      .order('movement_date', { ascending: false })
       .order('created_at', { ascending: false })
       .limit(100)
 
@@ -69,9 +70,9 @@ export default function MovimentiPage() {
     filter === 'all' || m.type === filter
   )
 
-  // Group by date
+  // Group by movement_date
   const groupedMovements = filteredMovements.reduce((acc, m) => {
-    const date = new Date(m.created_at).toLocaleDateString('it-IT', {
+    const date = new Date(m.movement_date).toLocaleDateString('it-IT', {
       weekday: 'long',
       day: 'numeric',
       month: 'long'

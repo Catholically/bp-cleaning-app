@@ -44,7 +44,8 @@
       "Bash(powershell:*)",
       "Bash(python3:*)",
       "Bash(git mv:*)",
-      "Bash(npm audit:*)"
+      "Bash(npm audit:*)",
+      "Bash(wc:*)"
     ]
   }
 }

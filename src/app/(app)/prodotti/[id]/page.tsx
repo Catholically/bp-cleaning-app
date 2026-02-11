@@ -16,7 +16,8 @@ import {
   TrendingUp,
   TrendingDown,
   Edit,
-  Trash2
+  Trash2,
+  FileText
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -208,6 +209,19 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Notes Section */}
+        {product.notes && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+            <div className="flex items-start gap-3">
+              <FileText className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 mb-1">Note</h3>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{product.notes}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-3">
