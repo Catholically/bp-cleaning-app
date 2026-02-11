@@ -3,13 +3,14 @@ import "./globals.css";
 import { AuthProvider } from "@/components/providers/auth-provider";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://bp-cleaning-app.vercel.app"),
   title: "BP Cleaning",
   description: "Gestione magazzino prodotti pulizia",
   manifest: "/manifest.json",
   openGraph: {
     title: "BP Cleaning",
     description: "Gestione magazzino prodotti pulizia",
-    url: "https://magazzino.bpcleaning.it",
+    url: "https://bp-cleaning-app.vercel.app",
     siteName: "BP Cleaning",
     images: [
       {

@@ -62,9 +62,33 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$provide
 ;
 ;
 const metadata = {
-    title: "BP Cleaning - Gestione Magazzino",
-    description: "Sistema di gestione magazzino per imprese di pulizie",
+    title: "BP Cleaning",
+    description: "Gestione magazzino prodotti pulizia",
     manifest: "/manifest.json",
+    openGraph: {
+        title: "BP Cleaning",
+        description: "Gestione magazzino prodotti pulizia",
+        url: "https://magazzino.bpcleaning.it",
+        siteName: "BP Cleaning",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "BP Cleaning"
+            }
+        ],
+        locale: "it_IT",
+        type: "website"
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "BP Cleaning",
+        description: "Gestione magazzino prodotti pulizia",
+        images: [
+            "/og-image.png"
+        ]
+    },
     appleWebApp: {
         capable: true,
         statusBarStyle: "black-translucent",
@@ -82,19 +106,9 @@ function RootLayout({ children }) {
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("html", {
         lang: "it",
         children: [
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("head", {
-                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("link", {
-                    rel: "apple-touch-icon",
-                    sizes: "180x180",
-                    href: "/icon-192.png"
-                }, void 0, false, {
-                    fileName: "[project]/src/app/layout.tsx",
-                    lineNumber: 32,
-                    columnNumber: 9
-                }, this)
-            }, void 0, false, {
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("head", {}, void 0, false, {
                 fileName: "[project]/src/app/layout.tsx",
-                lineNumber: 31,
+                lineNumber: 53,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("body", {
@@ -103,18 +117,18 @@ function RootLayout({ children }) {
                     children: children
                 }, void 0, false, {
                     fileName: "[project]/src/app/layout.tsx",
-                    lineNumber: 35,
+                    lineNumber: 55,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/layout.tsx",
-                lineNumber: 34,
+                lineNumber: 54,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/layout.tsx",
-        lineNumber: 30,
+        lineNumber: 52,
         columnNumber: 5
     }, this);
 }

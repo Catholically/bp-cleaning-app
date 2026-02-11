@@ -18,6 +18,8 @@
   "/(app)/utenti/page": "app/(app)/utenti/page.js",
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
+  "/api/users/create-batch/route": "app/api/users/create-batch/route.js",
+  "/api/users/create/route": "app/api/users/create/route.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
   "/icon.png/route": "app/icon.png/route.js",
   "/login/page": "app/login/page.js",

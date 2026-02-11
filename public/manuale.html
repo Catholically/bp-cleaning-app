@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manuale BP Cleaning - Gestione Dipendenti e Cantieri</title>
+  <style>
+    :root {
+      --primary: #3B82F6;
+      --primary-dark: #2563EB;
+      --bg: #F8FAFC;
+      --card: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --code-bg: #F1F5F9;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 3rem 1.5rem;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 1rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .nav {
+      background: var(--card);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 120px;
+      z-index: 50;
+    }
+
+    .nav h3 {
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .nav ul {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .nav a {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      color: var(--primary);
+      text-decoration: none;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .nav a:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    section {
+      background: var(--card);
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      color: var(--primary);
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    h3 {
+      color: var(--text);
+      font-size: 1.125rem;
+      margin: 1.5rem 0 1rem;
+    }
+
+    h4 {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin: 1rem 0 0.75rem;
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.875rem;
+    }
+
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: var(--bg);
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    tr:hover td {
+      background: var(--bg);
+    }
+
+    code {
+      background: var(--code-bg);
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.25rem;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 0.875rem;
+      color: var(--primary-dark);
+    }
+
+    pre {
+      background: #1E293B;
+      color: #E2E8F0;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-blue {
+      background: #DBEAFE;
+      color: #1D4ED8;
+    }
+
+    .badge-green {
+      background: #D1FAE5;
+      color: #047857;
+    }
+
+    .badge-amber {
+      background: #FEF3C7;
+      color: #B45309;
+    }
+
+    .badge-violet {
+      background: #EDE9FE;
+      color: #6D28D9;
+    }
+
+    .alert {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin: 1rem 0;
+    }
+
+    .alert-info {
+      background: #DBEAFE;
+      border-left: 4px solid var(--primary);
+      color: #1E40AF;
+    }
+
+    .alert-warning {
+      background: #FEF3C7;
+      border-left: 4px solid var(--warning);
+      color: #92400E;
+    }
+
+    .alert-success {
+      background: #D1FAE5;
+      border-left: 4px solid var(--success);
+      color: #065F46;
+    }
+
+    ul, ol {
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--bg);
+      border-radius: 0.75rem;
+      padding: 1rem;
+    }
+
+    .card h4 {
+      margin-top: 0;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    @media (max-width: 640px) {
+      .header {
+        padding: 2rem 1rem;
+      }
+
+      .header h1 {
+        font-size: 1.5rem;
+      }
+
+      section {
+        padding: 1.5rem;
+      }
+
+      .nav {
+        position: relative;
+        top: 0;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Manuale BP Cleaning</h1>
+  <p>Sistema di Gestione Dipendenti e Cantieri</p>
+</div>
+
+<div class="container">
+
+  <nav class="nav">
+    <h3>Indice</h3>
+    <ul>
+      <li><a href="#panoramica">Panoramica</a></li>
+      <li><a href="#database">Database</a></li>
+      <li><a href="#dipendenti">Dipendenti</a></li>
+      <li><a href="#cantieri">Cantieri</a></li>
+      <li><a href="#assegnazioni">Assegnazioni</a></li>
+      <li><a href="#autenticazione">Autenticazione</a></li>
+      <li><a href="#manutenzione">Manutenzione</a></li>
+    </ul>
+  </nav>
+
+  <section id="panoramica">
+    <h2>Panoramica</h2>
+    <p>Il sistema gestisce l'assegnazione dei dipendenti BP Cleaning ai vari cantieri/clienti. Ogni dipendente può essere assegnato a più cantieri, e ogni cantiere può avere più dipendenti assegnati.</p>
+
+    <h3>Concetti Chiave</h3>
+    <div class="grid-2">
+      <div class="card">
+        <h4>Dipendente</h4>
+        <p>Operatore BP Cleaning con codice univoco (DIP001, DIP002, etc.)</p>
+      </div>
+      <div class="card">
+        <h4>Cantiere</h4>
+        <p>Luogo di lavoro/cliente con codice univoco (1, 2, 3, ... 419)</p>
+      </div>
+      <div class="card">
+        <h4>Gruppo Cliente</h4>
+        <p>Raggruppamento logico di più cantieri appartenenti allo stesso cliente</p>
+      </div>
+      <div class="card">
+        <h4>Assegnazione</h4>
+        <p>Relazione dipendente ↔ cantiere</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="database">
+    <h2>Struttura Database</h2>
+
+    <h3>Tabella <code>workers</code> (Dipendenti)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Campo</th>
+          <th>Tipo</th>
+          <th>Descrizione</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>UUID</td><td>Identificatore univoco (auto-generato)</td></tr>
+        <tr><td><code>code</code></td><td>TEXT</td><td>Codice dipendente (es. DIP001) - UNIQUE</td></tr>
+        <tr><td><code>first_name</code></td><td>TEXT</td><td>Nome</td></tr>
+        <tr><td><code>last_name</code></td><td>TEXT</td><td>Cognome</td></tr>
+        <tr><td><code>full_name</code></td><td>TEXT</td><td>Nome completo (generato automaticamente)</td></tr>
+        <tr><td><code>email</code></td><td>TEXT</td><td>Email aziendale - UNIQUE</td></tr>
+        <tr><td><code>role</code></td><td>TEXT</td><td>Ruolo: <code>user</code>, <code>superuser</code>, <code>manager</code></td></tr>
+        <tr><td><code>is_active</code></td><td>BOOLEAN</td><td>Se il dipendente è attivo</td></tr>
+        <tr><td><code>user_id</code></td><td>UUID</td><td>Collegamento a auth.users</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Tabella <code>worksites</code> (Cantieri)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Campo</th>
+          <th>Tipo</th>
+          <th>Descrizione</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>UUID</td><td>Identificatore univoco</td></tr>
+        <tr><td><code>code</code></td><td>TEXT</td><td>Codice cantiere (es. 1, 2, 309)</td></tr>
+        <tr><td><code>name</code></td><td>TEXT</td><td>Nome cantiere/cliente</td></tr>
+        <tr><td><code>client_group</code></td><td>TEXT</td><td>Gruppo cliente per raggruppamenti (opzionale)</td></tr>
+        <tr><td><code>address</code></td><td>TEXT</td><td>Indirizzo</td></tr>
+        <tr><td><code>monthly_budget</code></td><td>DECIMAL</td><td>Budget mensile</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Tabella <code>worker_assignments</code> (Assegnazioni)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Campo</th>
+          <th>Tipo</th>
+          <th>Descrizione</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>UUID</td><td>Identificatore univoco</td></tr>
+        <tr><td><code>worker_id</code></td><td>UUID</td><td>FK → workers.id</td></tr>
+        <tr><td><code>worksite_id</code></td><td>UUID</td><td>FK → worksites.id</td></tr>
+      </tbody>
+    </table>
+    <div class="alert alert-info">
+      <strong>Vincolo:</strong> Combinazione <code>(worker_id, worksite_id)</code> deve essere UNIQUE.
+    </div>
+  </section>
+
+  <section id="dipendenti">
+    <h2>Dipendenti</h2>
+
+    <h3>Lista Dipendenti Attivi</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Codice</th>
+          <th>Nome Completo</th>
+          <th>Email</th>
+          <th>N° Cantieri</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="badge badge-blue">DIP001</span></td><td>Liud Cleider Calderon Garces</td><td>l.calderongarces@bpcleaning.it</td><td>12</td></tr>
+        <tr><td><span class="badge badge-blue">DIP002</span></td><td>Giusy De Cubellis</td><td>g.decubellis@bpcleaning.it</td><td>6</td></tr>
+        <tr><td><span class="badge badge-blue">DIP003</span></td><td>Ilona Demydasyuk</td><td>i.demydasyuk@bpcleaning.it</td><td>7</td></tr>
+        <tr><td><span class="badge badge-blue">DIP004</span></td><td>Domenica Desogos</td><td>d.desogos@bpcleaning.it</td><td>14</td></tr>
+        <tr><td><span class="badge badge-blue">DIP005</span></td><td>Samantha Feltrin</td><td>s.feltrin@bpcleaning.it</td><td>11</td></tr>
+        <tr><td><span class="badge badge-blue">DIP006</span></td><td>Umberto Galimberti</td><td>u.galimberti@bpcleaning.it</td><td>20</td></tr>
+        <tr><td><span class="badge badge-blue">DIP007</span></td><td>Dafne Garghentini</td><td>d.garghentini@bpcleaning.it</td><td>11</td></tr>
+        <tr><td><span class="badge badge-blue">DIP008</span></td><td>Luis Cornelio Guzhnay Guapacasa</td><td>l.guzhnayguapacasa@bpcleaning.it</td><td>8</td></tr>
+        <tr><td><span class="badge badge-blue">DIP009</span></td><td>Zorka Kastratovic</td><td>z.kastratovic@bpcleaning.it</td><td>1</td></tr>
+        <tr><td><span class="badge badge-blue">DIP010</span></td><td>Elvisa Rexaj</td><td>e.rexaj@bpcleaning.it</td><td>14</td></tr>
+        <tr><td><span class="badge badge-blue">DIP011</span></td><td>Maria Esther Rodriguez Hernandez</td><td>m.rodriguezhernandez@bpcleaning.it</td><td>8</td></tr>
+        <tr><td><span class="badge badge-blue">DIP012</span></td><td>Marco Saccon</td><td>m.saccon@bpcleaning.it</td><td>9</td></tr>
+        <tr><td><span class="badge badge-blue">DIP013</span></td><td>Marina Sala</td><td>m.sala@bpcleaning.it</td><td>13</td></tr>
+        <tr><td><span class="badge badge-blue">DIP014</span></td><td>Abdelalim Yassim</td><td>a.yassim@bpcleaning.it</td><td>1</td></tr>
+        <tr><td><span class="badge badge-blue">DIP015</span></td><td>Valentina Zaro</td><td>v.zaro@bpcleaning.it</td><td>13</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Formato Email</h3>
+    <p>Le email sono generate nel formato: <code>{iniziale_nome}.{cognome}@bpcleaning.it</code></p>
+    <div class="alert alert-info">
+      Esempi:<br>
+      • Liud Cleider Calderon Garces → <code>l.calderongarces@bpcleaning.it</code><br>
+      • Maria Esther Rodriguez Hernandez → <code>m.rodriguezhernandez@bpcleaning.it</code>
+    </div>
+  </section>
+
+  <section id="cantieri">
+    <h2>Cantieri e Gruppi Cliente</h2>
+
+    <h3>Campo <code>client_group</code></h3>
+    <p>Il campo <code>client_group</code> permette di raggruppare più cantieri sotto lo stesso cliente. Questo è utile per:</p>
+    <ul>
+      <li><strong>Report per cliente</strong>: Aggregare dati di più sedi/cantieri</li>
+      <li><strong>Fatturazione</strong>: Raggruppare costi per cliente</li>
+      <li><strong>Gestione</strong>: Visualizzare tutti i cantieri di un cliente insieme</li>
+    </ul>
+
+    <h3>Gruppi Cliente Configurati</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Gruppo Cliente</th>
+          <th>Cantieri Inclusi</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-violet">AMBULATORI VIGGIU'</span></td>
+          <td>DOTT. EMANUELE MARITAN (269), DOTT. ALFREDO DE NIGRIS (270), DOTT.SSA PAOLA MARIA PATRUNO (409)</td>
+          <td>3 studi medici nello stesso edificio</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">BASE BLU</span></td>
+          <td>BASE BLU (104)</td>
+          <td>Unifica ex "Negozio Blu", "Base Blu Uffici", "Base Blu Varano Borghi"</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-amber">FARMACIE POMI</span></td>
+          <td>FARMACIE POMI - SEDE 1 (349), FARMACIE POMI - SEDE 2 (351)</td>
+          <td>2 sedi diverse della stessa farmacia</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">IMPRESA SANGALLI</span></td>
+          <td>IMPRESA SANGALLI VARESE (309), IMPRESA SANGALLI MILANO (419)</td>
+          <td>Sede Varese + Sede Milano</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-violet">AZIENDA SPECIALE A. PARMIANI</span></td>
+          <td>AZIENDA SPECIALE "A. PARMIANI" (315)</td>
+          <td>Ex "Palestra Brenno"</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Casi Speciali</h3>
+
+    <h4>AMBULATORI VIGGIU'</h4>
+    <p>Tre studi medici distinti che condividono lo stesso edificio ad Arcisate. Mantengono codici separati per fatturazione individuale ma sono raggruppati per report aggregati.</p>
+    <div class="alert alert-warning">
+      <strong>Nota:</strong> DOTT. MARCOMARIA CAPPELLO (codice 271) è un cliente SEPARATO, non fa parte di AMBULATORI VIGGIU'.
+    </div>
+
+    <h4>IMPRESA SANGALLI</h4>
+    <p>Due sedi operative:</p>
+    <ul>
+      <li><strong>VARESE</strong> (codice 309): Sede storica, include ex "Sangalli Front Office"</li>
+      <li><strong>MILANO</strong> (codice 419): Nuova sede, include ex "Discarica Sangalli"</li>
+    </ul>
+  </section>
+
+  <section id="assegnazioni">
+    <h2>Assegnazioni</h2>
+
+    <h3>Visualizzare Assegnazioni</h3>
+    <pre><code>-- Tutti i cantieri di un dipendente
+SELECT
+    w.code,
+    w.first_name || ' ' || w.last_name as dipendente,
+    ws.code as cantiere_code,
+    ws.name as cantiere,
+    ws.client_group
+FROM worker_assignments wa
+JOIN workers w ON wa.worker_id = w.id
+JOIN worksites ws ON wa.worksite_id = ws.id
+WHERE w.code = 'DIP001'
+ORDER BY ws.name;</code></pre>
+
+    <h3>Aggiungere Assegnazione</h3>
+    <pre><code>INSERT INTO worker_assignments (worker_id, worksite_id)
+SELECT w.id, ws.id
+FROM workers w, worksites ws
+WHERE w.code = 'DIP001' AND ws.code = '100';</code></pre>
+
+    <h3>Rimuovere Assegnazione</h3>
+    <pre><code>DELETE FROM worker_assignments
+WHERE worker_id = (SELECT id FROM workers WHERE code = 'DIP001')
+AND worksite_id = (SELECT id FROM worksites WHERE code = '100');</code></pre>
+  </section>
+
+  <section id="autenticazione">
+    <h2>Sistema Autenticazione</h2>
+
+    <h3>Creazione Account Utenti</h3>
+    <p>Gli account utente vengono creati dall'amministratore tramite la pagina <strong>Impostazioni → Utenti</strong>.</p>
+
+    <h4>Funzionalità</h4>
+    <ul>
+      <li>Creazione utente con email alias (es. <code>m.rossi@bpcleaning.it</code>)</li>
+      <li>Redirect email per password reset (tutte le email alias puntano a <code>info@bpcleaning.it</code>)</li>
+      <li>Password auto-generata mostrata una sola volta</li>
+      <li>Collegamento automatico con record <code>workers</code> se email corrisponde</li>
+    </ul>
+
+    <h3>Alias Email</h3>
+    <div class="alert alert-info">
+      Tutte le email dei dipendenti sono alias che puntano a <code>info@bpcleaning.it</code>:<br>
+      • Login avviene con email alias (es. <code>l.calderongarces@bpcleaning.it</code>)<br>
+      • Reset password viene inviato a <code>info@bpcleaning.it</code><br>
+      • L'admin può poi impostare la nuova password e comunicarla al dipendente
+    </div>
+
+    <h3>API Endpoints</h3>
+
+    <h4>POST <code>/api/users/create</code></h4>
+    <p>Crea singolo utente</p>
+    <pre><code>{
+  "email": "m.rossi@bpcleaning.it",
+  "full_name": "Mario Rossi",
+  "role": "user",
+  "redirect_email": "info@bpcleaning.it"
+}</code></pre>
+
+    <h4>POST <code>/api/users/create-batch</code></h4>
+    <p>Crea utenti in batch</p>
+    <pre><code>{
+  "users": [
+    { "email": "...", "full_name": "..." }
+  ],
+  "default_redirect_email": "info@bpcleaning.it"
+}</code></pre>
+
+    <h3>Collegamento Workers ↔ Auth Users</h3>
+    <p>La tabella <code>workers</code> ha un campo <code>user_id</code> che viene popolato automaticamente quando:</p>
+    <ol>
+      <li>Si crea un utente con email corrispondente a un worker esistente</li>
+      <li>L'admin collega manualmente i record</li>
+    </ol>
+  </section>
+
+  <section id="manutenzione">
+    <h2>Manutenzione</h2>
+
+    <h3>Aggiungere Nuovo Dipendente</h3>
+    <pre><code>-- 1. Inserire in tabella workers
+INSERT INTO workers (code, first_name, last_name, email, role, is_active)
+VALUES ('DIP016', 'Mario', 'Rossi', 'm.rossi@bpcleaning.it', 'user', true);
+
+-- 2. Assegnare ai cantieri
+INSERT INTO worker_assignments (worker_id, worksite_id)
+SELECT w.id, ws.id
+FROM workers w, worksites ws
+WHERE w.code = 'DIP016' AND ws.code IN ('100', '101', '102');</code></pre>
+
+    <h3>Creare Nuovo Gruppo Cliente</h3>
+    <pre><code>-- Identificare i cantieri da raggruppare e aggiornare il campo client_group
+UPDATE worksites
+SET client_group = 'NUOVO GRUPPO'
+WHERE code IN ('100', '101', '102');</code></pre>
+
+    <h3>File di Riferimento</h3>
+    <div class="alert alert-success">
+      <strong>Excel Dipendenti/Cantieri:</strong> <code>public/BP_Dipendenti_Cantieri_Finale.xlsx</code><br>
+      • Foglio 1: Dipendenti (15 record)<br>
+      • Foglio 2: Assegnazioni (148 record)
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>BP Cleaning App - Manuale Gestione Dipendenti e Cantieri</p>
+    <p>Ultimo aggiornamento: Febbraio 2026</p>
+  </footer>
+
+</div>
+
+</body>
+</html>

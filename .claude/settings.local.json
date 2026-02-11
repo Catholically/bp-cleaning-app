@@ -32,7 +32,19 @@
       "Bash(Get-Item \"C:\\\\AI_Projects\\\\bp-cleaning-app\\\\src\\\\app\\\\favicon.ico\")",
       "Bash(Select-Object Name, Length, LastWriteTime)",
       "Bash(Get-Item \"C:\\\\AI_Projects\\\\bp-cleaning-app\\\\src\\\\app\\\\icon.png\")",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(vercel:*)",
+      "Bash(curl:*)",
+      "Bash(printf:*)",
+      "Bash(npx supabase:*)",
+      "Bash(claude mcp add supabase --help:*)",
+      "Bash(npx:*)",
+      "Bash(claude mcp add:*)",
+      "Bash(claude mcp:*)",
+      "Bash(powershell:*)",
+      "Bash(python3:*)",
+      "Bash(git mv:*)",
+      "Bash(npm audit:*)"
     ]
   }
 }

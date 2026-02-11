@@ -74,6 +74,18 @@
       "namedRegex": "^/_not\\-found(?:/)?$"
     },
     {
+      "page": "/api/users/create",
+      "regex": "^/api/users/create(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/users/create(?:/)?$"
+    },
+    {
+      "page": "/api/users/create-batch",
+      "regex": "^/api/users/create\\-batch(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/users/create\\-batch(?:/)?$"
+    },
+    {
       "page": "/cantieri",
       "regex": "^/cantieri(?:/)?$",
       "routeKeys": {},

@@ -18,6 +18,8 @@
   "/(app)/utenti/page": "/utenti",
   "/_global-error/page": "/_global-error",
   "/_not-found/page": "/_not-found",
+  "/api/users/create-batch/route": "/api/users/create-batch",
+  "/api/users/create/route": "/api/users/create",
   "/favicon.ico/route": "/favicon.ico",
   "/icon.png/route": "/icon.png",
   "/login/page": "/login",

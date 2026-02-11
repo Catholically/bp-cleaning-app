@@ -21,7 +21,13 @@ import {
   Building2,
   Plus,
   Check,
-  Briefcase
+  Briefcase,
+  UserPlus,
+  Copy,
+  AlertCircle,
+  CheckCircle2,
+  Eye,
+  EyeOff
 } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
@@ -46,6 +52,15 @@ const ROLE_CONFIG = {
   }
 }
 
+interface CreatedUserResult {
+  email: string
+  full_name: string
+  success: boolean
+  error?: string
+  generated_password?: string
+  user_id?: string
+}
+
 function UtentiContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -59,17 +74,28 @@ function UtentiContent() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null)
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState<'info' | 'cantieri'>('info')
   const [selectedWorksites, setSelectedWorksites] = useState<string[]>([])
   const [worksiteSearch, setWorksiteSearch] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [createdUsers, setCreatedUsers] = useState<CreatedUserResult[]>([])
+  const [copiedId, setCopiedId] = useState<string | null>(null)
   const supabase = createClient()
 
   const [formData, setFormData] = useState({
     email: '',
     full_name: '',
     role: 'user' as UserRole
+  })
+
+  const [createFormData, setCreateFormData] = useState({
+    email: '',
+    full_name: '',
+    role: 'user' as UserRole,
+    redirect_email: 'info@bpcleaning.it' // Default redirect for password reset
   })
 
   useEffect(() => {
@@ -152,6 +178,67 @@ function UtentiContent() {
     setSaving(false)
   }
 
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!createFormData.email.trim() || !createFormData.full_name.trim()) return
+
+    setSaving(true)
+
+    try {
+      const response = await fetch('/api/users/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: createFormData.email.trim(),
+          full_name: createFormData.full_name.trim(),
+          role: createFormData.role,
+          redirect_email: createFormData.redirect_email.trim() || undefined
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        alert('Errore: ' + data.error)
+        setSaving(false)
+        return
+      }
+
+      // Add to created users list to show password
+      if (data.generated_password) {
+        setCreatedUsers(prev => [...prev, {
+          email: createFormData.email.trim(),
+          full_name: createFormData.full_name.trim(),
+          success: true,
+          generated_password: data.generated_password,
+          user_id: data.user.id
+        }])
+      }
+
+      // Reset form
+      setCreateFormData({
+        email: '',
+        full_name: '',
+        role: 'user',
+        redirect_email: 'info@bpcleaning.it'
+      })
+
+      // Refresh data
+      fetchData()
+
+    } catch (error) {
+      alert('Errore nella creazione utente')
+    }
+
+    setSaving(false)
+  }
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text)
+    setCopiedId(id)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
+
   const toggleWorksite = (worksiteId: string) => {
     setSelectedWorksites(prev =>
       prev.includes(worksiteId)
@@ -197,7 +284,203 @@ function UtentiContent() {
     )
   }
 
-  // Form view
+  // Create user form
+  if (showCreateForm) {
+    return (
+      <div className="min-h-screen pb-24">
+        <header className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 text-white px-4 pt-12 pb-6 rounded-b-3xl">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center gap-3 mb-4">
+              <button
+                onClick={() => {
+                  setShowCreateForm(false)
+                  setCreatedUsers([])
+                }}
+                className="p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <span className="text-emerald-100">Nuovo Utente</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
+                <UserPlus className="w-7 h-7" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold">Crea Nuovo Utente</h1>
+                <p className="text-emerald-100 text-sm">Aggiungi un dipendente al sistema</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="max-w-4xl mx-auto px-4 space-y-4 pt-4">
+          {/* Show created users with passwords */}
+          {createdUsers.length > 0 && (
+            <div className="bg-emerald-50 rounded-2xl border border-emerald-200 p-4">
+              <h3 className="font-semibold text-emerald-800 mb-3 flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5" />
+                Utenti Creati ({createdUsers.length})
+              </h3>
+              <div className="space-y-3">
+                {createdUsers.map((user, idx) => (
+                  <div key={idx} className="bg-white rounded-xl p-3 border border-emerald-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-gray-900">{user.full_name}</span>
+                      <span className="text-sm text-gray-500">{user.email}</span>
+                    </div>
+                    {user.generated_password && (
+                      <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2">
+                        <span className="text-sm text-gray-600">Password:</span>
+                        <code className="flex-1 font-mono text-sm bg-white px-2 py-1 rounded border">
+                          {showPassword ? user.generated_password : '••••••••••••'}
+                        </code>
+                        <button
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                        <button
+                          onClick={() => copyToClipboard(user.generated_password!, user.email)}
+                          className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors"
+                        >
+                          {copiedId === user.email ? (
+                            <Check className="w-4 h-4 text-emerald-600" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-emerald-600 mt-3">
+                ⚠️ Salva queste password! Non potrai vederle di nuovo.
+              </p>
+            </div>
+          )}
+
+          <form onSubmit={handleCreateUser} className="space-y-4">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email *
+              </label>
+              <input
+                type="email"
+                value={createFormData.email}
+                onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })}
+                placeholder="es. m.rossi@bpcleaning.it"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                required
+              />
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nome Completo *
+              </label>
+              <input
+                type="text"
+                value={createFormData.full_name}
+                onChange={(e) => setCreateFormData({ ...createFormData, full_name: e.target.value })}
+                placeholder="Es. Mario Rossi"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                required
+              />
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email per Reset Password
+              </label>
+              <input
+                type="email"
+                value={createFormData.redirect_email}
+                onChange={(e) => setCreateFormData({ ...createFormData, redirect_email: e.target.value })}
+                placeholder="info@bpcleaning.it"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                L'email dove verranno inviate le richieste di reset password (per alias)
+              </p>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Ruolo
+              </label>
+              <div className="space-y-2">
+                {(Object.entries(ROLE_CONFIG) as [UserRole, typeof ROLE_CONFIG.superuser][]).map(([role, config]) => {
+                  const Icon = config.icon
+                  return (
+                    <label
+                      key={role}
+                      className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                        createFormData.role === role
+                          ? `border-${config.color}-500 bg-${config.color}-50`
+                          : 'border-gray-100 hover:border-gray-200'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="role"
+                        value={role}
+                        checked={createFormData.role === role}
+                        onChange={(e) => setCreateFormData({ ...createFormData, role: e.target.value as UserRole })}
+                        className="sr-only"
+                      />
+                      <div className={`w-10 h-10 rounded-xl bg-${config.color}-100 flex items-center justify-center`}>
+                        <Icon className={`w-5 h-5 text-${config.color}-600`} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">{config.label}</p>
+                        <p className="text-xs text-gray-500">{config.description}</p>
+                      </div>
+                      {createFormData.role === role && (
+                        <div className={`w-6 h-6 rounded-full bg-${config.color}-500 flex items-center justify-center`}>
+                          <Check className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={saving || !createFormData.email.trim() || !createFormData.full_name.trim()}
+              className="w-full flex items-center justify-center gap-2 p-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Creazione in corso...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-5 h-5" />
+                  Crea Utente
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="bg-amber-50 rounded-2xl border border-amber-100 p-4">
+            <p className="text-sm text-amber-800">
+              <strong>Nota sugli alias email:</strong> Se l'email è un alias (es. m.rossi@bpcleaning.it → info@bpcleaning.it),
+              specifica l'indirizzo reale nel campo "Email per Reset Password". Le richieste di reset password
+              verranno inviate a quell'indirizzo.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Edit form view (existing code)
   if (showForm && editingProfile) {
     const roleConfig = ROLE_CONFIG[formData.role]
     const RoleIcon = roleConfig.icon
@@ -514,10 +797,16 @@ function UtentiContent() {
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl font-bold">Gestione Utenti</h1>
             <p className="text-blue-100 text-sm">{profiles.length} utenti registrati</p>
           </div>
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="p-2.5 bg-white/20 hover:bg-white/30 rounded-xl transition-colors"
+          >
+            <UserPlus className="w-5 h-5" />
+          </button>
         </div>
 
         <div className="relative">
@@ -609,11 +898,14 @@ function UtentiContent() {
           </div>
         </div>
 
-        <div className="bg-gray-50 rounded-2xl border border-gray-100 p-4">
-          <p className="text-sm text-gray-700 font-medium mb-1">Come aggiungere nuovi utenti</p>
-          <p className="text-xs text-gray-500">
-            Per aggiungere un nuovo utente, chiedigli di registrarsi tramite la pagina di login.
-            Dopo la registrazione, potrai modificare il suo ruolo e assegnargli i cantieri da qui.
+        <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-4">
+          <p className="text-sm text-emerald-700 font-medium mb-1 flex items-center gap-2">
+            <UserPlus className="w-4 h-4" />
+            Aggiungere nuovi utenti
+          </p>
+          <p className="text-xs text-emerald-600">
+            Usa il pulsante <strong>+</strong> in alto a destra per creare nuovi account.
+            Puoi impostare un'email alias che punta a un indirizzo reale per il reset password.
           </p>
         </div>
       </div>
