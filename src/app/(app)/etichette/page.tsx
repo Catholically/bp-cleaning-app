@@ -180,10 +180,15 @@ function EtichetteContent() {
 
         const padding = 3
 
-        // SKU in alto a sinistra (grande e bold)
+        // Nome prodotto in alto a sinistra (grande e bold)
         pdf.setFontSize(14)
         pdf.setFont('helvetica', 'bold')
-        pdf.text(product.sku || '', padding, 7)
+        let name = product.name
+        const maxWidth = DYMO_WIDTH - padding * 2 - 25
+        while (pdf.getTextWidth(name) > maxWidth && name.length > 10) {
+          name = name.slice(0, -4) + '...'
+        }
+        pdf.text(name, padding, 7)
 
         // Unità in alto a destra
         pdf.setFontSize(10)
@@ -192,17 +197,7 @@ function EtichetteContent() {
         const unitWidth = pdf.getTextWidth(unitText)
         pdf.text(unitText, DYMO_WIDTH - padding - unitWidth, 7)
 
-        // Nome prodotto (troncato se troppo lungo)
-        pdf.setFontSize(9)
-        pdf.setFont('helvetica', 'bold')
-        let name = product.name
-        const maxWidth = DYMO_WIDTH - padding * 2
-        while (pdf.getTextWidth(name) > maxWidth && name.length > 10) {
-          name = name.slice(0, -4) + '...'
-        }
-        pdf.text(name, padding, 13)
-
-        // Barcode Code 128 - alta risoluzione, centrato nella parte inferiore
+        // Barcode BPC - centrato nella parte inferiore, ingrandito
         const barcodeValue = product.barcode || ''
         if (barcodeValue) {
           const scale = 4
@@ -210,20 +205,20 @@ function EtichetteContent() {
           JsBarcode(barcodeCanvas, barcodeValue, {
             format: 'CODE128',
             width: 2 * scale,
-            height: 30 * scale,
+            height: 35 * scale,
             displayValue: true,
-            fontSize: 11 * scale,
+            fontSize: 12 * scale,
             margin: 2 * scale,
             background: '#ffffff',
             textMargin: 2 * scale
           })
 
           const barcodeDataURL = barcodeCanvas.toDataURL('image/png')
-          const barcodeWidth = 70
+          const barcodeWidth = 75
           const barcodeAspect = barcodeCanvas.height / barcodeCanvas.width
           const barcodeHeight = barcodeWidth * barcodeAspect
           const barcodeX = (DYMO_WIDTH - barcodeWidth) / 2
-          const barcodeY = 15
+          const barcodeY = 10
 
           // Limita altezza per non uscire dall'etichetta
           const maxBarcodeHeight = DYMO_HEIGHT - barcodeY - 1
