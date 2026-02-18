@@ -203,7 +203,7 @@ function EtichetteContent() {
         pdf.text(name, padding, 13)
 
         // Barcode Code 128 - alta risoluzione, centrato nella parte inferiore
-        const barcodeValue = product.sku || product.barcode || ''
+        const barcodeValue = product.barcode || ''
         if (barcodeValue) {
           const scale = 4
           const barcodeCanvas = document.createElement('canvas')
