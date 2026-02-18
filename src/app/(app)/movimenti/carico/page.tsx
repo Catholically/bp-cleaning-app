@@ -667,7 +667,18 @@ function CaricoContent() {
             >
               <Minus className="w-6 h-6" />
             </button>
-            <span className="text-5xl font-bold text-gray-900 w-20 text-center">{quantity}</span>
+            <input
+              type="number"
+              value={quantity}
+              onChange={(e) => {
+                const val = parseInt(e.target.value);
+                if (!isNaN(val) && val >= 1) setQuantity(val);
+                if (e.target.value === '') setQuantity(1);
+              }}
+              onFocus={(e) => e.target.select()}
+              min={1}
+              className="text-5xl font-bold text-gray-900 w-24 text-center bg-transparent border-b-2 border-gray-200 focus:border-emerald-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
             <button
               onClick={() => setQuantity(quantity + 1)}
               className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl font-bold transition-all duration-200 active:scale-95 bg-emerald-100 text-emerald-600 hover:bg-emerald-200"
