@@ -38,21 +38,13 @@ const LABEL_HEIGHT = 21.2
 const GAP_H = 2.5
 const GAP_V = 0
 
-// DYMO 30332 - 1" x 1" (25.4mm x 25.4mm)
-const DYMO_WIDTH = 25.4
-const DYMO_HEIGHT = 25.4
+// DYMO 99012 - 36mm x 89mm (etichetta indirizzo standard)
+const DYMO_WIDTH = 89
+const DYMO_HEIGHT = 36
 
-// Avery Small / DYMO 48.5mm x 25.4mm (tipo Avery L4731 - 84 etichette per foglio)
-// 4 colonne x 21 righe
-const SMALL_LABELS_PER_ROW = 4
-const SMALL_LABELS_PER_COL = 21
-const SMALL_LABELS_PER_PAGE = SMALL_LABELS_PER_ROW * SMALL_LABELS_PER_COL
+// DYMO 48.5mm x 25.4mm (tipo Avery L4731)
 const SMALL_LABEL_WIDTH = 48.5
 const SMALL_LABEL_HEIGHT = 25.4
-const SMALL_MARGIN_LEFT = 6.8
-const SMALL_MARGIN_TOP = 8.8
-const SMALL_GAP_H = 0
-const SMALL_GAP_V = 0
 
 interface ProductWithQuantity extends Product {
   printQuantity: number
@@ -72,11 +64,7 @@ function EtichetteContent() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [generating, setGenerating] = useState(false)
   const [printMode, setPrintMode] = useState<PrintMode>('dymo')
-  const [customBarcode, setCustomBarcode] = useState('')
-  const [customText, setCustomText] = useState('')
-  const [dymoQuantity, setDymoQuantity] = useState(1)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const previewCanvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -95,13 +83,6 @@ function EtichetteContent() {
       isMounted = false
     }
   }, [])
-
-  // Aggiorna preview quando cambiano i dati
-  useEffect(() => {
-    if (printMode === 'dymo') {
-      updateDymoPreview()
-    }
-  }, [customBarcode, customText, printMode])
 
   async function loadProducts() {
     const supabase = createClient()
@@ -172,175 +153,18 @@ function EtichetteContent() {
     }
   }
 
-  function updateDymoPreview() {
-    const canvas = previewCanvasRef.current
-    if (!canvas) return
-
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    // Scala per preview (3x per nitidezza)
-    const scale = 3
-    const size = 96 * scale // 96px = 1" a 96dpi * 3
-    canvas.width = size
-    canvas.height = size
-
-    // Background bianco
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, size, size)
-
-    // Bordo etichetta (solo per preview)
-    ctx.strokeStyle = '#e5e7eb'
-    ctx.lineWidth = 1
-    ctx.strokeRect(0.5, 0.5, size - 1, size - 1)
-
-    const barcodeValue = customBarcode.trim()
-    const textValue = customText.trim()
-
-    if (!barcodeValue && !textValue) {
-      // Placeholder
-      ctx.fillStyle = '#9ca3af'
-      ctx.font = `${12 * scale}px sans-serif`
-      ctx.textAlign = 'center'
-      ctx.fillText('Inserisci codice', size / 2, size / 2)
-      return
-    }
-
-    // Genera barcode Code 128
-    if (barcodeValue) {
-      try {
-        const barcodeCanvas = document.createElement('canvas')
-        JsBarcode(barcodeCanvas, barcodeValue, {
-          format: 'CODE128',
-          width: 1.5,
-          height: 40,
-          displayValue: true,
-          fontSize: 11,
-          margin: 0,
-          background: '#ffffff',
-          textMargin: 2
-        })
-
-        // Centra il barcode
-        const barcodeWidth = Math.min(barcodeCanvas.width, size - 10 * scale)
-        const barcodeHeight = (barcodeCanvas.height / barcodeCanvas.width) * barcodeWidth
-        const x = (size - barcodeWidth) / 2
-        const y = textValue ? 8 * scale : (size - barcodeHeight) / 2
-
-        ctx.drawImage(barcodeCanvas, x, y, barcodeWidth, barcodeHeight)
-
-        // Testo sotto il barcode
-        if (textValue) {
-          ctx.fillStyle = '#374151'
-          ctx.font = `bold ${8 * scale}px sans-serif`
-          ctx.textAlign = 'center'
-          ctx.fillText(textValue.substring(0, 20), size / 2, size - 6 * scale)
-        }
-      } catch (e) {
-        ctx.fillStyle = '#ef4444'
-        ctx.font = `${10 * scale}px sans-serif`
-        ctx.textAlign = 'center'
-        ctx.fillText('Codice non valido', size / 2, size / 2)
-      }
-    } else if (textValue) {
-      // Solo testo
-      ctx.fillStyle = '#111827'
-      ctx.font = `bold ${14 * scale}px sans-serif`
-      ctx.textAlign = 'center'
-      ctx.fillText(textValue.substring(0, 15), size / 2, size / 2 + 5 * scale)
-    }
-  }
-
-  async function generateDymoPDF() {
-    if (!customBarcode.trim() && !customText.trim()) {
-      alert('Inserisci un codice a barre o del testo')
-      return
-    }
-
-    setGenerating(true)
-
-    try {
-      // PDF dimensione DYMO 1x1" (25.4mm x 25.4mm)
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: [DYMO_WIDTH, DYMO_HEIGHT]
-      })
-
-      for (let i = 0; i < dymoQuantity; i++) {
-        if (i > 0) pdf.addPage([DYMO_WIDTH, DYMO_HEIGHT])
-
-        const barcodeValue = customBarcode.trim()
-        const textValue = customText.trim()
-
-        if (barcodeValue) {
-          // Genera barcode - alta risoluzione (4x)
-          const scale = 4
-          const barcodeCanvas = document.createElement('canvas')
-          JsBarcode(barcodeCanvas, barcodeValue, {
-            format: 'CODE128',
-            width: 2 * scale,
-            height: 40 * scale,
-            displayValue: true,
-            fontSize: 12 * scale,
-            margin: 2 * scale,
-            background: '#ffffff',
-            textMargin: 2 * scale
-          })
-
-          const barcodeDataURL = barcodeCanvas.toDataURL('image/png')
-
-          // Calcola dimensioni per centrare
-          const maxBarcodeWidth = DYMO_WIDTH - 2
-          const barcodeAspect = barcodeCanvas.height / barcodeCanvas.width
-          const barcodeWidth = Math.min(maxBarcodeWidth, DYMO_WIDTH - 2)
-          const barcodeHeight = barcodeWidth * barcodeAspect
-
-          const x = (DYMO_WIDTH - barcodeWidth) / 2
-          const y = textValue ? 1.5 : (DYMO_HEIGHT - barcodeHeight) / 2
-
-          pdf.addImage(barcodeDataURL, 'PNG', x, y, barcodeWidth, barcodeHeight)
-
-          // Testo aggiuntivo sotto
-          if (textValue) {
-            pdf.setFontSize(7)
-            pdf.setFont('helvetica', 'bold')
-            const textWidth = pdf.getTextWidth(textValue.substring(0, 20))
-            pdf.text(textValue.substring(0, 20), (DYMO_WIDTH - textWidth) / 2, DYMO_HEIGHT - 1.5)
-          }
-        } else if (textValue) {
-          // Solo testo grande centrato
-          pdf.setFontSize(12)
-          pdf.setFont('helvetica', 'bold')
-          const textWidth = pdf.getTextWidth(textValue.substring(0, 12))
-          pdf.text(textValue.substring(0, 12), (DYMO_WIDTH - textWidth) / 2, DYMO_HEIGHT / 2 + 2)
-        }
-      }
-
-      const filename = customBarcode.trim() || customText.trim().replace(/\s+/g, '_')
-      pdf.save(`dymo-${filename}-x${dymoQuantity}.pdf`)
-
-    } catch (error) {
-      console.error('Errore generazione PDF:', error)
-      alert('Errore nella generazione del PDF')
-    }
-
-    setGenerating(false)
-  }
-
-  // Generate DYMO PDF from selected products (with barcode)
+  // Generate DYMO 36x89mm PDF from selected products
   async function generateDymoFromProducts() {
     if (selectedProducts.length === 0) return
 
     setGenerating(true)
 
     try {
-      // PDF con pagine dimensione etichetta DYMO 1"x1" (25.4mm x 25.4mm)
-      // Per stampante a rotolo continuo
+      // PDF con pagine dimensione etichetta DYMO 36x89mm (landscape: larghezza 89, altezza 36)
       const pdf = new jsPDF({
-        orientation: 'portrait',
+        orientation: 'landscape',
         unit: 'mm',
-        format: [DYMO_WIDTH, DYMO_HEIGHT]
+        format: [DYMO_HEIGHT, DYMO_WIDTH]
       })
 
       // Prepara lista etichette da stampare
@@ -352,10 +176,33 @@ function EtichetteContent() {
       })
 
       labelsToPrint.forEach((product, i) => {
-        // Nuova pagina per ogni etichetta (dopo la prima)
-        if (i > 0) pdf.addPage([DYMO_WIDTH, DYMO_HEIGHT])
+        if (i > 0) pdf.addPage([DYMO_HEIGHT, DYMO_WIDTH], 'landscape')
 
-        // Genera barcode Code 128 con SKU - alta risoluzione (4x)
+        const padding = 3
+
+        // SKU in alto a sinistra (grande e bold)
+        pdf.setFontSize(14)
+        pdf.setFont('helvetica', 'bold')
+        pdf.text(product.sku || '', padding, 7)
+
+        // Unità in alto a destra
+        pdf.setFontSize(10)
+        pdf.setFont('helvetica', 'normal')
+        const unitText = `${product.quantity_per_package} ${product.unit}`
+        const unitWidth = pdf.getTextWidth(unitText)
+        pdf.text(unitText, DYMO_WIDTH - padding - unitWidth, 7)
+
+        // Nome prodotto (troncato se troppo lungo)
+        pdf.setFontSize(9)
+        pdf.setFont('helvetica', 'bold')
+        let name = product.name
+        const maxWidth = DYMO_WIDTH - padding * 2
+        while (pdf.getTextWidth(name) > maxWidth && name.length > 10) {
+          name = name.slice(0, -4) + '...'
+        }
+        pdf.text(name, padding, 13)
+
+        // Barcode Code 128 - alta risoluzione, centrato nella parte inferiore
         const barcodeValue = product.sku || product.barcode || ''
         if (barcodeValue) {
           const scale = 4
@@ -363,33 +210,28 @@ function EtichetteContent() {
           JsBarcode(barcodeCanvas, barcodeValue, {
             format: 'CODE128',
             width: 2 * scale,
-            height: 40 * scale,
+            height: 30 * scale,
             displayValue: true,
-            fontSize: 12 * scale,
+            fontSize: 11 * scale,
             margin: 2 * scale,
             background: '#ffffff',
             textMargin: 2 * scale
           })
 
           const barcodeDataURL = barcodeCanvas.toDataURL('image/png')
-
-          // Calcola dimensioni per centrare
-          const maxBarcodeWidth = DYMO_WIDTH - 2
+          const barcodeWidth = 70
           const barcodeAspect = barcodeCanvas.height / barcodeCanvas.width
-          const barcodeWidth = Math.min(maxBarcodeWidth, DYMO_WIDTH - 2)
           const barcodeHeight = barcodeWidth * barcodeAspect
+          const barcodeX = (DYMO_WIDTH - barcodeWidth) / 2
+          const barcodeY = 15
 
-          const x = (DYMO_WIDTH - barcodeWidth) / 2
-          const y = 1.5
-
-          pdf.addImage(barcodeDataURL, 'PNG', x, y, barcodeWidth, barcodeHeight)
-
-          // Nome prodotto sotto (troncato a 18 caratteri)
-          const productName = product.name.substring(0, 18)
-          pdf.setFontSize(6)
-          pdf.setFont('helvetica', 'bold')
-          const textWidth = pdf.getTextWidth(productName)
-          pdf.text(productName, (DYMO_WIDTH - textWidth) / 2, DYMO_HEIGHT - 1.5)
+          // Limita altezza per non uscire dall'etichetta
+          const maxBarcodeHeight = DYMO_HEIGHT - barcodeY - 1
+          if (barcodeHeight > maxBarcodeHeight) {
+            pdf.addImage(barcodeDataURL, 'PNG', barcodeX, barcodeY, barcodeWidth, maxBarcodeHeight)
+          } else {
+            pdf.addImage(barcodeDataURL, 'PNG', barcodeX, barcodeY, barcodeWidth, barcodeHeight)
+          }
         }
       })
 
@@ -505,7 +347,6 @@ function EtichetteContent() {
 
     try {
       // PDF con pagine dimensione etichetta DYMO 1.91"x1" (48.5mm x 25.4mm)
-      // Per stampante a rotolo continuo
       const pdf = new jsPDF({
         orientation: 'landscape',
         unit: 'mm',
@@ -521,10 +362,8 @@ function EtichetteContent() {
       })
 
       labelsToPrint.forEach((product, i) => {
-        // Nuova pagina per ogni etichetta (dopo la prima)
         if (i > 0) pdf.addPage([SMALL_LABEL_HEIGHT, SMALL_LABEL_WIDTH], 'landscape')
 
-        // Disegna etichetta alla posizione 0,0 (riempi pagina intera)
         drawSmallLabelForRoll(pdf, product, 0, 0)
       })
 
@@ -538,43 +377,6 @@ function EtichetteContent() {
     }
 
     setGenerating(false)
-  }
-
-  function drawSmallLabel(pdf: jsPDF, product: ProductWithQuantity, x: number, y: number) {
-    const padding = 2
-
-    // SKU in alto a sinistra (bold)
-    pdf.setFontSize(10)
-    pdf.setFont('helvetica', 'bold')
-    pdf.text(product.sku || '', x + padding, y + 5)
-
-    // Unità in alto a destra
-    pdf.setFontSize(8)
-    pdf.setFont('helvetica', 'normal')
-    const unitText = `${product.quantity_per_package} ${product.unit}`
-    const unitWidth = pdf.getTextWidth(unitText)
-    pdf.text(unitText, x + SMALL_LABEL_WIDTH - padding - unitWidth, y + 5)
-
-    // Nome prodotto (troncato se troppo lungo)
-    pdf.setFontSize(7)
-    let name = product.name
-    const maxWidth = SMALL_LABEL_WIDTH - padding * 2
-    while (pdf.getTextWidth(name) > maxWidth && name.length > 10) {
-      name = name.slice(0, -4) + '...'
-    }
-    pdf.text(name, x + padding, y + 10)
-
-    // Barcode - più grande per etichetta più larga, alta risoluzione
-    if (product.barcode) {
-      const barcodeDataURL = generateBarcodeDataURL(product.barcode, 'CODE128', 4)
-      if (barcodeDataURL) {
-        const barcodeWidth = 42
-        const barcodeHeight = 12
-        const barcodeX = x + (SMALL_LABEL_WIDTH - barcodeWidth) / 2
-        const barcodeY = y + 11.5
-        pdf.addImage(barcodeDataURL, 'PNG', barcodeX, barcodeY, barcodeWidth, barcodeHeight)
-      }
-    }
   }
 
   function drawSmallLabelForRoll(pdf: jsPDF, product: ProductWithQuantity, x: number, y: number) {
@@ -640,7 +442,7 @@ function EtichetteContent() {
                 Stampa Etichette
               </h1>
               <p className="text-sky-100 text-sm">
-                {printMode === 'dymo' ? 'DYMO 1"x1" (25.4mm) - Code 128' : printMode === 'small' ? 'DYMO 1.91"x1" (48.5x25.4mm) - Code 128' : 'Foglio A4 - 65 etichette per foglio'}
+                {printMode === 'dymo' ? 'DYMO 36×89mm - Code 128' : printMode === 'small' ? 'DYMO 48.5×25.4mm - Code 128' : 'Foglio A4 - 65 etichette per foglio'}
               </p>
             </div>
           </div>
@@ -659,7 +461,7 @@ function EtichetteContent() {
                 <QrCode className="w-4 h-4" />
                 <span>DYMO</span>
               </div>
-              <span className="text-xs opacity-75">1"x1"</span>
+              <span className="text-xs opacity-75">36×89mm</span>
             </button>
             <button
               onClick={() => setPrintMode('small')}
@@ -673,7 +475,7 @@ function EtichetteContent() {
                 <Tag className="w-4 h-4" />
                 <span>DYMO</span>
               </div>
-              <span className="text-xs opacity-75">1.91"x1"</span>
+              <span className="text-xs opacity-75">48.5×25.4mm</span>
             </button>
             <button
               onClick={() => setPrintMode('avery')}
@@ -691,7 +493,7 @@ function EtichetteContent() {
             </button>
           </div>
 
-          {/* Stats and Print Button - Same for all modes */}
+          {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-white/20 rounded-xl p-3 text-center">
               <div className="text-2xl font-bold">{selectedProducts.length}</div>
@@ -703,9 +505,9 @@ function EtichetteContent() {
             </div>
             <div className="bg-white/20 rounded-xl p-3 text-center">
               <div className="text-2xl font-bold">
-                {printMode === 'dymo' ? totalLabels : Math.ceil(totalLabels / (printMode === 'small' ? SMALL_LABELS_PER_PAGE : LABELS_PER_PAGE))}
+                {printMode === 'avery' ? Math.ceil(totalLabels / LABELS_PER_PAGE) : totalLabels}
               </div>
-              <div className="text-xs text-sky-100">{printMode === 'dymo' ? 'Stampe' : 'Pagine A4'}</div>
+              <div className="text-xs text-sky-100">{printMode === 'avery' ? 'Pagine A4' : 'Stampe'}</div>
             </div>
           </div>
 
@@ -731,7 +533,7 @@ function EtichetteContent() {
             ) : (
               <>
                 <Printer className="w-6 h-6" />
-                STAMPA {printMode === 'dymo' ? 'DYMO' : 'PDF'} ({totalLabels} etichett{totalLabels === 1 ? 'a' : 'e'})
+                STAMPA {printMode === 'dymo' || printMode === 'small' ? 'DYMO' : 'PDF'} ({totalLabels} etichett{totalLabels === 1 ? 'a' : 'e'})
               </>
             )}
           </button>
@@ -764,7 +566,7 @@ function EtichetteContent() {
           </select>
         </div>
 
-        {/* Select All - For all modes */}
+        {/* Select All */}
         <div className="flex items-center justify-between mb-3 px-1">
           <button
             onClick={toggleSelectAll}
@@ -788,7 +590,7 @@ function EtichetteContent() {
               }`}
             >
               <div className="p-3 flex items-center gap-3">
-                {/* Checkbox - For all modes */}
+                {/* Checkbox */}
                 <button
                   onClick={() => toggleSelect(product.id)}
                   className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors ${
@@ -811,7 +613,7 @@ function EtichetteContent() {
                   <div className="text-xs text-gray-400 font-mono">{product.barcode}</div>
                 </div>
 
-                {/* Quantity Controls - For all modes when selected */}
+                {/* Quantity Controls */}
                 {product.selected && (
                   <div className="flex items-center gap-1">
                     <button
@@ -847,7 +649,6 @@ function EtichetteContent() {
           </div>
         )}
       </div>
-
 
       {/* Hidden canvas for barcode generation */}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
