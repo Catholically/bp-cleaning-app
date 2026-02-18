@@ -180,22 +180,21 @@ function EtichetteContent() {
 
         const padding = 3
 
-        // Nome prodotto in alto a sinistra (grande e bold)
+        // Nome prodotto in alto (grande e bold, tutta la larghezza)
         pdf.setFontSize(14)
         pdf.setFont('helvetica', 'bold')
         let name = product.name
-        const maxWidth = DYMO_WIDTH - padding * 2 - 25
+        const maxWidth = DYMO_WIDTH - padding * 2
         while (pdf.getTextWidth(name) > maxWidth && name.length > 10) {
           name = name.slice(0, -4) + '...'
         }
-        pdf.text(name, padding, 7)
+        pdf.text(name, padding, 6)
 
-        // Unità in alto a destra
+        // Unità sotto il nome
         pdf.setFontSize(10)
         pdf.setFont('helvetica', 'normal')
         const unitText = `${product.quantity_per_package} ${product.unit}`
-        const unitWidth = pdf.getTextWidth(unitText)
-        pdf.text(unitText, DYMO_WIDTH - padding - unitWidth, 7)
+        pdf.text(unitText, padding, 11)
 
         // Barcode BPC - centrato nella parte inferiore, ingrandito
         const barcodeValue = product.barcode || ''
@@ -218,7 +217,7 @@ function EtichetteContent() {
           const barcodeAspect = barcodeCanvas.height / barcodeCanvas.width
           const barcodeHeight = barcodeWidth * barcodeAspect
           const barcodeX = (DYMO_WIDTH - barcodeWidth) / 2
-          const barcodeY = 10
+          const barcodeY = 13
 
           // Limita altezza per non uscire dall'etichetta
           const maxBarcodeHeight = DYMO_HEIGHT - barcodeY - 1
