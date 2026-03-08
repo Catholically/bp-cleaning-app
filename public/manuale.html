@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manuale BP Cleaning - Gestione Dipendenti e Cantieri</title>
+  <title>Guida BP Cleaning - Magazzino</title>
   <style>
     :root {
       --primary: #3B82F6;
@@ -15,241 +15,120 @@
       --border: #E2E8F0;
       --success: #10B981;
       --warning: #F59E0B;
+      --danger: #EF4444;
+      --violet: #8B5CF6;
       --code-bg: #F1F5F9;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.6;
+      line-height: 1.7;
     }
 
     .header {
       background: linear-gradient(135deg, var(--primary), var(--primary-dark));
       color: white;
-      padding: 3rem 1.5rem;
+      padding: 3rem 1.5rem 2rem;
       text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
     }
 
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
+    .header h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .header p { opacity: 0.9; font-size: 0.95rem; }
 
-    .header p {
-      opacity: 0.9;
-      font-size: 1rem;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 2rem 1rem;
-    }
+    .container { max-width: 800px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
 
     .nav {
       background: var(--card);
       border-radius: 1rem;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
       position: sticky;
-      top: 120px;
+      top: 0;
       z-index: 50;
     }
 
     .nav h3 {
-      font-size: 0.875rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--text-muted);
-      margin-bottom: 1rem;
+      margin-bottom: 0.75rem;
     }
 
-    .nav ul {
-      list-style: none;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
+    .nav ul { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem; }
 
     .nav a {
       display: inline-block;
-      padding: 0.5rem 1rem;
+      padding: 0.4rem 0.75rem;
       background: var(--bg);
       color: var(--primary);
       text-decoration: none;
       border-radius: 0.5rem;
-      font-size: 0.875rem;
+      font-size: 0.8rem;
       font-weight: 500;
       transition: all 0.2s;
     }
 
-    .nav a:hover {
-      background: var(--primary);
-      color: white;
-    }
+    .nav a:hover { background: var(--primary); color: white; }
 
     section {
       background: var(--card);
       border-radius: 1rem;
-      padding: 2rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      padding: 1.75rem;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     }
 
     h2 {
       color: var(--primary);
-      font-size: 1.5rem;
-      margin-bottom: 1.5rem;
-      padding-bottom: 0.75rem;
+      font-size: 1.35rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.5rem;
       border-bottom: 2px solid var(--border);
     }
 
-    h3 {
-      color: var(--text);
-      font-size: 1.125rem;
-      margin: 1.5rem 0 1rem;
-    }
-
-    h4 {
-      color: var(--text-muted);
-      font-size: 1rem;
-      margin: 1rem 0 0.75rem;
-    }
-
-    p {
-      margin-bottom: 1rem;
-      color: var(--text);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1rem 0;
-      font-size: 0.875rem;
-    }
-
-    th, td {
-      padding: 0.75rem 1rem;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-
-    th {
-      background: var(--bg);
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      font-size: 0.75rem;
-      letter-spacing: 0.05em;
-    }
-
-    tr:hover td {
-      background: var(--bg);
-    }
-
-    code {
-      background: var(--code-bg);
-      padding: 0.2rem 0.5rem;
-      border-radius: 0.25rem;
-      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-      font-size: 0.875rem;
-      color: var(--primary-dark);
-    }
-
-    pre {
-      background: #1E293B;
-      color: #E2E8F0;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      overflow-x: auto;
-      margin: 1rem 0;
-    }
-
-    pre code {
-      background: none;
-      color: inherit;
-      padding: 0;
-    }
+    h3 { color: var(--text); font-size: 1.05rem; margin: 1.25rem 0 0.75rem; }
+    p { margin-bottom: 0.85rem; }
 
     .badge {
       display: inline-block;
-      padding: 0.25rem 0.75rem;
+      padding: 0.2rem 0.6rem;
       border-radius: 9999px;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 600;
     }
 
-    .badge-blue {
-      background: #DBEAFE;
-      color: #1D4ED8;
-    }
-
-    .badge-green {
-      background: #D1FAE5;
-      color: #047857;
-    }
-
-    .badge-amber {
-      background: #FEF3C7;
-      color: #B45309;
-    }
-
-    .badge-violet {
-      background: #EDE9FE;
-      color: #6D28D9;
-    }
+    .badge-green { background: #D1FAE5; color: #047857; }
+    .badge-amber { background: #FEF3C7; color: #B45309; }
+    .badge-red { background: #FEE2E2; color: #DC2626; }
+    .badge-blue { background: #DBEAFE; color: #1D4ED8; }
+    .badge-violet { background: #EDE9FE; color: #6D28D9; }
 
     .alert {
-      padding: 1rem;
+      padding: 0.85rem 1rem;
       border-radius: 0.5rem;
-      margin: 1rem 0;
+      margin: 0.85rem 0;
+      font-size: 0.9rem;
     }
 
-    .alert-info {
-      background: #DBEAFE;
-      border-left: 4px solid var(--primary);
-      color: #1E40AF;
-    }
+    .alert-info { background: #DBEAFE; border-left: 4px solid var(--primary); color: #1E40AF; }
+    .alert-warning { background: #FEF3C7; border-left: 4px solid var(--warning); color: #92400E; }
+    .alert-success { background: #D1FAE5; border-left: 4px solid var(--success); color: #065F46; }
+    .alert-danger { background: #FEE2E2; border-left: 4px solid var(--danger); color: #991B1B; }
 
-    .alert-warning {
-      background: #FEF3C7;
-      border-left: 4px solid var(--warning);
-      color: #92400E;
-    }
-
-    .alert-success {
-      background: #D1FAE5;
-      border-left: 4px solid var(--success);
-      color: #065F46;
-    }
-
-    ul, ol {
-      margin: 1rem 0;
-      padding-left: 1.5rem;
-    }
-
-    li {
-      margin-bottom: 0.5rem;
-    }
+    ul, ol { margin: 0.75rem 0; padding-left: 1.5rem; }
+    li { margin-bottom: 0.4rem; }
 
     .grid-2 {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 0.75rem;
+      margin: 0.75rem 0;
     }
 
     .card {
@@ -258,47 +137,78 @@
       padding: 1rem;
     }
 
-    .card h4 {
-      margin-top: 0;
+    .card h4 { margin: 0 0 0.5rem; font-size: 0.95rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.85rem 0;
+      font-size: 0.85rem;
     }
+
+    th, td { padding: 0.6rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th {
+      background: var(--bg);
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+    }
+
+    .steps {
+      counter-reset: step;
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .steps li {
+      counter-increment: step;
+      padding-left: 2.5rem;
+      position: relative;
+      margin-bottom: 0.6rem;
+    }
+
+    .steps li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0.1rem;
+      width: 1.6rem;
+      height: 1.6rem;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .role-table td:first-child { font-weight: 600; white-space: nowrap; }
 
     .footer {
       text-align: center;
       padding: 2rem;
       color: var(--text-muted);
-      font-size: 0.875rem;
+      font-size: 0.8rem;
     }
 
     @media (max-width: 640px) {
-      .header {
-        padding: 2rem 1rem;
-      }
-
-      .header h1 {
-        font-size: 1.5rem;
-      }
-
-      section {
-        padding: 1.5rem;
-      }
-
-      .nav {
-        position: relative;
-        top: 0;
-      }
-
-      table {
-        display: block;
-        overflow-x: auto;
-      }
+      .header { padding: 2rem 1rem 1.5rem; }
+      .header h1 { font-size: 1.4rem; }
+      section { padding: 1.25rem; }
+      .nav { position: relative; top: 0; }
+      table { display: block; overflow-x: auto; }
     }
   </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>Manuale BP Cleaning</h1>
-  <p>Sistema di Gestione Dipendenti e Cantieri</p>
+  <h1>Guida BP Cleaning</h1>
+  <p>Gestione Magazzino e Cantieri</p>
 </div>
 
 <div class="container">
@@ -306,321 +216,340 @@
   <nav class="nav">
     <h3>Indice</h3>
     <ul>
-      <li><a href="#panoramica">Panoramica</a></li>
-      <li><a href="#database">Database</a></li>
-      <li><a href="#dipendenti">Dipendenti</a></li>
+      <li><a href="#ruoli">Ruoli</a></li>
+      <li><a href="#dashboard">Dashboard</a></li>
+      <li><a href="#prodotti">Prodotti</a></li>
+      <li><a href="#carico">Carico</a></li>
+      <li><a href="#scarico">Scarico</a></li>
+      <li><a href="#storno">Storno</a></li>
       <li><a href="#cantieri">Cantieri</a></li>
-      <li><a href="#assegnazioni">Assegnazioni</a></li>
-      <li><a href="#autenticazione">Autenticazione</a></li>
-      <li><a href="#manutenzione">Manutenzione</a></li>
+      <li><a href="#fornitori">Fornitori</a></li>
+      <li><a href="#etichette">Etichette</a></li>
+      <li><a href="#report">Report</a></li>
+      <li><a href="#utenti">Utenti</a></li>
+      <li><a href="#barcode">Barcode</a></li>
     </ul>
   </nav>
 
-  <section id="panoramica">
-    <h2>Panoramica</h2>
-    <p>Il sistema gestisce l'assegnazione dei dipendenti BP Cleaning ai vari cantieri/clienti. Ogni dipendente può essere assegnato a più cantieri, e ogni cantiere può avere più dipendenti assegnati.</p>
+  <!-- RUOLI -->
+  <section id="ruoli">
+    <h2>Ruoli e Permessi</h2>
+    <p>Ogni utente ha un ruolo che determina cosa può vedere e fare nell'app.</p>
 
-    <h3>Concetti Chiave</h3>
+    <table class="role-table">
+      <thead>
+        <tr>
+          <th>Funzione</th>
+          <th><span class="badge badge-blue">Operatore</span></th>
+          <th><span class="badge badge-violet">Manager</span></th>
+          <th><span class="badge badge-red">Admin</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Vedere prodotti</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+        <tr><td>Fare carico/scarico</td><td>&#10003;</td><td>&mdash;</td><td>&#10003;</td></tr>
+        <tr><td>Vedere movimenti</td><td>Solo i propri</td><td>&mdash;</td><td>Tutti</td></tr>
+        <tr><td>Stornare movimenti</td><td>&#10003;</td><td>&mdash;</td><td>&#10003;</td></tr>
+        <tr><td>Vedere cantieri</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+        <tr><td>Creare/modificare cantieri</td><td>&mdash;</td><td>&mdash;</td><td>&#10003;</td></tr>
+        <tr><td>Gestire fornitori</td><td>&mdash;</td><td>&#10003;</td><td>&#10003;</td></tr>
+        <tr><td>Stampare etichette</td><td>&mdash;</td><td>&#10003;</td><td>&#10003;</td></tr>
+        <tr><td>Esportare report</td><td>&mdash;</td><td>&mdash;</td><td>&#10003;</td></tr>
+        <tr><td>Gestire utenti</td><td>&mdash;</td><td>&mdash;</td><td>&#10003;</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="dashboard">
+    <h2>Dashboard (Home)</h2>
+    <p>La schermata principale mostra un riepilogo veloce del magazzino.</p>
+
+    <h3>Cosa vedi</h3>
+    <ul>
+      <li><strong>Valore Stock</strong> &mdash; il valore totale della merce in magazzino</li>
+      <li><strong>Da Riordinare</strong> &mdash; quanti prodotti sono sotto la scorta minima</li>
+      <li><strong>Scorte Basse</strong> &mdash; i 5 prodotti con meno giacenza (con link per vederne di pi&ugrave;)</li>
+    </ul>
+
+    <h3>Azioni rapide</h3>
     <div class="grid-2">
       <div class="card">
-        <h4>Dipendente</h4>
-        <p>Operatore BP Cleaning con codice univoco (DIP001, DIP002, etc.)</p>
+        <h4><span class="badge badge-green">Carico Merce</span></h4>
+        <p>Registra merce in arrivo in magazzino</p>
       </div>
       <div class="card">
-        <h4>Cantiere</h4>
-        <p>Luogo di lavoro/cliente con codice univoco (1, 2, 3, ... 419)</p>
-      </div>
-      <div class="card">
-        <h4>Gruppo Cliente</h4>
-        <p>Raggruppamento logico di più cantieri appartenenti allo stesso cliente</p>
-      </div>
-      <div class="card">
-        <h4>Assegnazione</h4>
-        <p>Relazione dipendente ↔ cantiere</p>
+        <h4><span class="badge badge-amber">Scarico per Cantiere</span></h4>
+        <p>Registra merce in uscita verso un cantiere</p>
       </div>
     </div>
   </section>
 
-  <section id="database">
-    <h2>Struttura Database</h2>
+  <!-- PRODOTTI -->
+  <section id="prodotti">
+    <h2>Prodotti</h2>
+    <p>L'inventario completo dei prodotti in magazzino.</p>
 
-    <h3>Tabella <code>workers</code> (Dipendenti)</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Campo</th>
-          <th>Tipo</th>
-          <th>Descrizione</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><code>id</code></td><td>UUID</td><td>Identificatore univoco (auto-generato)</td></tr>
-        <tr><td><code>code</code></td><td>TEXT</td><td>Codice dipendente (es. DIP001) - UNIQUE</td></tr>
-        <tr><td><code>first_name</code></td><td>TEXT</td><td>Nome</td></tr>
-        <tr><td><code>last_name</code></td><td>TEXT</td><td>Cognome</td></tr>
-        <tr><td><code>full_name</code></td><td>TEXT</td><td>Nome completo (generato automaticamente)</td></tr>
-        <tr><td><code>email</code></td><td>TEXT</td><td>Email aziendale - UNIQUE</td></tr>
-        <tr><td><code>role</code></td><td>TEXT</td><td>Ruolo: <code>user</code>, <code>superuser</code>, <code>manager</code></td></tr>
-        <tr><td><code>is_active</code></td><td>BOOLEAN</td><td>Se il dipendente è attivo</td></tr>
-        <tr><td><code>user_id</code></td><td>UUID</td><td>Collegamento a auth.users</td></tr>
-      </tbody>
-    </table>
-
-    <h3>Tabella <code>worksites</code> (Cantieri)</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Campo</th>
-          <th>Tipo</th>
-          <th>Descrizione</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><code>id</code></td><td>UUID</td><td>Identificatore univoco</td></tr>
-        <tr><td><code>code</code></td><td>TEXT</td><td>Codice cantiere (es. 1, 2, 309)</td></tr>
-        <tr><td><code>name</code></td><td>TEXT</td><td>Nome cantiere/cliente</td></tr>
-        <tr><td><code>client_group</code></td><td>TEXT</td><td>Gruppo cliente per raggruppamenti (opzionale)</td></tr>
-        <tr><td><code>address</code></td><td>TEXT</td><td>Indirizzo</td></tr>
-        <tr><td><code>monthly_budget</code></td><td>DECIMAL</td><td>Budget mensile</td></tr>
-      </tbody>
-    </table>
-
-    <h3>Tabella <code>worker_assignments</code> (Assegnazioni)</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Campo</th>
-          <th>Tipo</th>
-          <th>Descrizione</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><code>id</code></td><td>UUID</td><td>Identificatore univoco</td></tr>
-        <tr><td><code>worker_id</code></td><td>UUID</td><td>FK → workers.id</td></tr>
-        <tr><td><code>worksite_id</code></td><td>UUID</td><td>FK → worksites.id</td></tr>
-      </tbody>
-    </table>
-    <div class="alert alert-info">
-      <strong>Vincolo:</strong> Combinazione <code>(worker_id, worksite_id)</code> deve essere UNIQUE.
-    </div>
-  </section>
-
-  <section id="dipendenti">
-    <h2>Dipendenti</h2>
-
-    <h3>Lista Dipendenti Attivi</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Codice</th>
-          <th>Nome Completo</th>
-          <th>Email</th>
-          <th>N° Cantieri</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><span class="badge badge-blue">DIP001</span></td><td>Liud Cleider Calderon Garces</td><td>l.calderongarces@bpcleaning.it</td><td>12</td></tr>
-        <tr><td><span class="badge badge-blue">DIP002</span></td><td>Giusy De Cubellis</td><td>g.decubellis@bpcleaning.it</td><td>6</td></tr>
-        <tr><td><span class="badge badge-blue">DIP003</span></td><td>Ilona Demydasyuk</td><td>i.demydasyuk@bpcleaning.it</td><td>7</td></tr>
-        <tr><td><span class="badge badge-blue">DIP004</span></td><td>Domenica Desogos</td><td>d.desogos@bpcleaning.it</td><td>14</td></tr>
-        <tr><td><span class="badge badge-blue">DIP005</span></td><td>Samantha Feltrin</td><td>s.feltrin@bpcleaning.it</td><td>11</td></tr>
-        <tr><td><span class="badge badge-blue">DIP006</span></td><td>Umberto Galimberti</td><td>u.galimberti@bpcleaning.it</td><td>20</td></tr>
-        <tr><td><span class="badge badge-blue">DIP007</span></td><td>Dafne Garghentini</td><td>d.garghentini@bpcleaning.it</td><td>11</td></tr>
-        <tr><td><span class="badge badge-blue">DIP008</span></td><td>Luis Cornelio Guzhnay Guapacasa</td><td>l.guzhnayguapacasa@bpcleaning.it</td><td>8</td></tr>
-        <tr><td><span class="badge badge-blue">DIP009</span></td><td>Zorka Kastratovic</td><td>z.kastratovic@bpcleaning.it</td><td>1</td></tr>
-        <tr><td><span class="badge badge-blue">DIP010</span></td><td>Elvisa Rexaj</td><td>e.rexaj@bpcleaning.it</td><td>14</td></tr>
-        <tr><td><span class="badge badge-blue">DIP011</span></td><td>Maria Esther Rodriguez Hernandez</td><td>m.rodriguezhernandez@bpcleaning.it</td><td>8</td></tr>
-        <tr><td><span class="badge badge-blue">DIP012</span></td><td>Marco Saccon</td><td>m.saccon@bpcleaning.it</td><td>9</td></tr>
-        <tr><td><span class="badge badge-blue">DIP013</span></td><td>Marina Sala</td><td>m.sala@bpcleaning.it</td><td>13</td></tr>
-        <tr><td><span class="badge badge-blue">DIP014</span></td><td>Abdelalim Yassim</td><td>a.yassim@bpcleaning.it</td><td>1</td></tr>
-        <tr><td><span class="badge badge-blue">DIP015</span></td><td>Valentina Zaro</td><td>v.zaro@bpcleaning.it</td><td>13</td></tr>
-      </tbody>
-    </table>
-
-    <h3>Formato Email</h3>
-    <p>Le email sono generate nel formato: <code>{iniziale_nome}.{cognome}@bpcleaning.it</code></p>
-    <div class="alert alert-info">
-      Esempi:<br>
-      • Liud Cleider Calderon Garces → <code>l.calderongarces@bpcleaning.it</code><br>
-      • Maria Esther Rodriguez Hernandez → <code>m.rodriguezhernandez@bpcleaning.it</code>
-    </div>
-  </section>
-
-  <section id="cantieri">
-    <h2>Cantieri e Gruppi Cliente</h2>
-
-    <h3>Campo <code>client_group</code></h3>
-    <p>Il campo <code>client_group</code> permette di raggruppare più cantieri sotto lo stesso cliente. Questo è utile per:</p>
+    <h3>Cercare un prodotto</h3>
     <ul>
-      <li><strong>Report per cliente</strong>: Aggregare dati di più sedi/cantieri</li>
-      <li><strong>Fatturazione</strong>: Raggruppare costi per cliente</li>
-      <li><strong>Gestione</strong>: Visualizzare tutti i cantieri di un cliente insieme</li>
+      <li><strong>Barra di ricerca</strong> &mdash; cerca per nome o barcode</li>
+      <li><strong>Filtro tipo</strong> &mdash; "Pulizia" (detergenti, sgrassatori...) o "Attrezz." (accessori, attrezzature)</li>
+      <li><strong>Filtro categoria</strong> &mdash; tocca il tipo per espandere le sotto-categorie</li>
+      <li><strong>Solo scorte basse</strong> &mdash; mostra solo i prodotti sotto la scorta minima</li>
     </ul>
 
-    <h3>Gruppi Cliente Configurati</h3>
+    <h3>Indicatori giacenza</h3>
     <table>
       <thead>
-        <tr>
-          <th>Gruppo Cliente</th>
-          <th>Cantieri Inclusi</th>
-          <th>Note</th>
-        </tr>
+        <tr><th>Badge</th><th>Significato</th></tr>
       </thead>
       <tbody>
-        <tr>
-          <td><span class="badge badge-violet">AMBULATORI VIGGIU'</span></td>
-          <td>DOTT. EMANUELE MARITAN (269), DOTT. ALFREDO DE NIGRIS (270), DOTT.SSA PAOLA MARIA PATRUNO (409)</td>
-          <td>3 studi medici nello stesso edificio</td>
-        </tr>
-        <tr>
-          <td><span class="badge badge-green">BASE BLU</span></td>
-          <td>BASE BLU (104)</td>
-          <td>Unifica ex "Negozio Blu", "Base Blu Uffici", "Base Blu Varano Borghi"</td>
-        </tr>
-        <tr>
-          <td><span class="badge badge-amber">FARMACIE POMI</span></td>
-          <td>FARMACIE POMI - SEDE 1 (349), FARMACIE POMI - SEDE 2 (351)</td>
-          <td>2 sedi diverse della stessa farmacia</td>
-        </tr>
-        <tr>
-          <td><span class="badge badge-blue">IMPRESA SANGALLI</span></td>
-          <td>IMPRESA SANGALLI VARESE (309), IMPRESA SANGALLI MILANO (419)</td>
-          <td>Sede Varese + Sede Milano</td>
-        </tr>
-        <tr>
-          <td><span class="badge badge-violet">AZIENDA SPECIALE A. PARMIANI</span></td>
-          <td>AZIENDA SPECIALE "A. PARMIANI" (315)</td>
-          <td>Ex "Palestra Brenno"</td>
-        </tr>
+        <tr><td><span class="badge badge-red">RIORDINO</span></td><td>Quantit&agrave; &le; scorta minima. Da ordinare subito!</td></tr>
+        <tr><td><span class="badge badge-amber">BASSO</span></td><td>Quantit&agrave; vicina alla scorta minima</td></tr>
+        <tr><td><span class="badge badge-green">OK</span></td><td>Quantit&agrave; sufficiente</td></tr>
       </tbody>
     </table>
 
-    <h3>Casi Speciali</h3>
+    <h3>Dettaglio prodotto</h3>
+    <p>Toccando un prodotto si vede: giacenza attuale, barra scorta min/max, costo unitario, fornitore, barcode e azioni rapide per carico/scarico.</p>
 
-    <h4>AMBULATORI VIGGIU'</h4>
-    <p>Tre studi medici distinti che condividono lo stesso edificio ad Arcisate. Mantengono codici separati per fatturazione individuale ma sono raggruppati per report aggregati.</p>
-    <div class="alert alert-warning">
-      <strong>Nota:</strong> DOTT. MARCOMARIA CAPPELLO (codice 271) è un cliente SEPARATO, non fa parte di AMBULATORI VIGGIU'.
-    </div>
-
-    <h4>IMPRESA SANGALLI</h4>
-    <p>Due sedi operative:</p>
-    <ul>
-      <li><strong>VARESE</strong> (codice 309): Sede storica, include ex "Sangalli Front Office"</li>
-      <li><strong>MILANO</strong> (codice 419): Nuova sede, include ex "Discarica Sangalli"</li>
-    </ul>
-  </section>
-
-  <section id="assegnazioni">
-    <h2>Assegnazioni</h2>
-
-    <h3>Visualizzare Assegnazioni</h3>
-    <pre><code>-- Tutti i cantieri di un dipendente
-SELECT
-    w.code,
-    w.first_name || ' ' || w.last_name as dipendente,
-    ws.code as cantiere_code,
-    ws.name as cantiere,
-    ws.client_group
-FROM worker_assignments wa
-JOIN workers w ON wa.worker_id = w.id
-JOIN worksites ws ON wa.worksite_id = ws.id
-WHERE w.code = 'DIP001'
-ORDER BY ws.name;</code></pre>
-
-    <h3>Aggiungere Assegnazione</h3>
-    <pre><code>INSERT INTO worker_assignments (worker_id, worksite_id)
-SELECT w.id, ws.id
-FROM workers w, worksites ws
-WHERE w.code = 'DIP001' AND ws.code = '100';</code></pre>
-
-    <h3>Rimuovere Assegnazione</h3>
-    <pre><code>DELETE FROM worker_assignments
-WHERE worker_id = (SELECT id FROM workers WHERE code = 'DIP001')
-AND worksite_id = (SELECT id FROM worksites WHERE code = '100');</code></pre>
-  </section>
-
-  <section id="autenticazione">
-    <h2>Sistema Autenticazione</h2>
-
-    <h3>Creazione Account Utenti</h3>
-    <p>Gli account utente vengono creati dall'amministratore tramite la pagina <strong>Impostazioni → Utenti</strong>.</p>
-
-    <h4>Funzionalità</h4>
-    <ul>
-      <li>Creazione utente con email alias (es. <code>m.rossi@bpcleaning.it</code>)</li>
-      <li>Redirect email per password reset (tutte le email alias puntano a <code>info@bpcleaning.it</code>)</li>
-      <li>Password auto-generata mostrata una sola volta</li>
-      <li>Collegamento automatico con record <code>workers</code> se email corrisponde</li>
-    </ul>
-
-    <h3>Alias Email</h3>
-    <div class="alert alert-info">
-      Tutte le email dei dipendenti sono alias che puntano a <code>info@bpcleaning.it</code>:<br>
-      • Login avviene con email alias (es. <code>l.calderongarces@bpcleaning.it</code>)<br>
-      • Reset password viene inviato a <code>info@bpcleaning.it</code><br>
-      • L'admin può poi impostare la nuova password e comunicarla al dipendente
-    </div>
-
-    <h3>API Endpoints</h3>
-
-    <h4>POST <code>/api/users/create</code></h4>
-    <p>Crea singolo utente</p>
-    <pre><code>{
-  "email": "m.rossi@bpcleaning.it",
-  "full_name": "Mario Rossi",
-  "role": "user",
-  "redirect_email": "info@bpcleaning.it"
-}</code></pre>
-
-    <h4>POST <code>/api/users/create-batch</code></h4>
-    <p>Crea utenti in batch</p>
-    <pre><code>{
-  "users": [
-    { "email": "...", "full_name": "..." }
-  ],
-  "default_redirect_email": "info@bpcleaning.it"
-}</code></pre>
-
-    <h3>Collegamento Workers ↔ Auth Users</h3>
-    <p>La tabella <code>workers</code> ha un campo <code>user_id</code> che viene popolato automaticamente quando:</p>
-    <ol>
-      <li>Si crea un utente con email corrispondente a un worker esistente</li>
-      <li>L'admin collega manualmente i record</li>
+    <h3>Creare un nuovo prodotto <span class="badge badge-red">Solo Admin</span></h3>
+    <ol class="steps">
+      <li>Dalla lista prodotti, tocca il bottone <strong>+</strong></li>
+      <li>Compila nome, categoria, unit&agrave;, costo e scorta minima</li>
+      <li>SKU e Barcode vengono <strong>generati automaticamente</strong></li>
+      <li>Premi "Crea Prodotto"</li>
     </ol>
   </section>
 
-  <section id="manutenzione">
-    <h2>Manutenzione</h2>
+  <!-- CARICO -->
+  <section id="carico">
+    <h2>Carico (Merce in Entrata)</h2>
+    <p>Registra la merce che arriva in magazzino dai fornitori.</p>
 
-    <h3>Aggiungere Nuovo Dipendente</h3>
-    <pre><code>-- 1. Inserire in tabella workers
-INSERT INTO workers (code, first_name, last_name, email, role, is_active)
-VALUES ('DIP016', 'Mario', 'Rossi', 'm.rossi@bpcleaning.it', 'user', true);
+    <ol class="steps">
+      <li>Dalla home tocca <strong>"Carico Merce"</strong> oppure vai su Movimenti &rarr; Carico</li>
+      <li><strong>Cerca il prodotto</strong> per nome, oppure scansiona il barcode con la pistola USB o la fotocamera</li>
+      <li>Nella sezione "Recenti" trovi i prodotti che hai caricato negli ultimi 30 giorni</li>
+      <li><strong>Imposta la quantit&agrave;</strong> usando i pulsanti +/&minus; o digitando direttamente il numero</li>
+      <li>Cambia la data se necessario (per default &egrave; oggi)</li>
+      <li>Premi <strong>"Registra Carico"</strong></li>
+      <li>La schermata di conferma mostra prodotto, quantit&agrave;, costo e nuova giacenza</li>
+    </ol>
 
--- 2. Assegnare ai cantieri
-INSERT INTO worker_assignments (worker_id, worksite_id)
-SELECT w.id, ws.id
-FROM workers w, worksites ws
-WHERE w.code = 'DIP016' AND ws.code IN ('100', '101', '102');</code></pre>
-
-    <h3>Creare Nuovo Gruppo Cliente</h3>
-    <pre><code>-- Identificare i cantieri da raggruppare e aggiornare il campo client_group
-UPDATE worksites
-SET client_group = 'NUOVO GRUPPO'
-WHERE code IN ('100', '101', '102');</code></pre>
-
-    <h3>File di Riferimento</h3>
     <div class="alert alert-success">
-      <strong>Excel Dipendenti/Cantieri:</strong> <code>public/BP_Dipendenti_Cantieri_Finale.xlsx</code><br>
-      • Foglio 1: Dipendenti (15 record)<br>
-      • Foglio 2: Assegnazioni (148 record)
+      <strong>La giacenza si aggiorna subito.</strong> Non serve fare nient'altro.
     </div>
   </section>
 
+  <!-- SCARICO -->
+  <section id="scarico">
+    <h2>Scarico (Merce verso Cantiere)</h2>
+    <p>Registra la merce che esce dal magazzino verso un cantiere.</p>
+
+    <ol class="steps">
+      <li>Dalla home tocca <strong>"Scarico per Cantiere"</strong> oppure vai su Movimenti &rarr; Scarico</li>
+      <li><strong>Seleziona il cantiere</strong> di destinazione dalla lista (puoi cercare per nome o codice)</li>
+      <li><strong>Cerca il prodotto</strong> per nome o barcode</li>
+      <li><strong>Imposta la quantit&agrave;</strong> (il sistema controlla che ci sia abbastanza stock)</li>
+      <li>Cambia la data se necessario</li>
+      <li>Premi <strong>"Registra Scarico"</strong></li>
+      <li>La conferma mostra cantiere, prodotto, quantit&agrave; e costo totale</li>
+    </ol>
+
+    <div class="alert alert-warning">
+      <strong>Stock insufficiente?</strong> Se provi a scaricare pi&ugrave; di quanto disponibile, il sistema ti avvisa e corregge automaticamente la quantit&agrave;.
+    </div>
+
+    <div class="alert alert-info">
+      <strong>Scorciatoia:</strong> Dalla pagina di un cantiere, premi "Nuovo Scarico per questo cantiere" &mdash; il cantiere sar&agrave; gi&agrave; selezionato.
+    </div>
+  </section>
+
+  <!-- STORNO -->
+  <section id="storno">
+    <h2>Storno (Annullare un Movimento)</h2>
+    <p>Se un movimento &egrave; stato fatto per errore (cantiere sbagliato, prodotto sbagliato, quantit&agrave; errata), puoi <strong>stornarlo</strong>.</p>
+
+    <h3>Cosa succede quando storni</h3>
+    <ul>
+      <li>Stornare uno <strong>scarico</strong> &rarr; la merce torna in magazzino automaticamente</li>
+      <li>Stornare un <strong>carico</strong> &rarr; la merce viene tolta dal magazzino</li>
+      <li>Il <strong>costo viene sottratto</strong> dal totale del cantiere</li>
+      <li>Il movimento originale resta visibile (barrato) per mantenere lo storico</li>
+    </ul>
+
+    <h3>Come stornare dalla pagina Cantiere</h3>
+    <ol class="steps">
+      <li>Apri il cantiere interessato</li>
+      <li>Nella sezione "Prodotti per mese", <strong>tocca il nome del prodotto</strong></li>
+      <li>Si espandono i singoli movimenti con data, quantit&agrave; e operatore</li>
+      <li>Premi <strong>"Storna"</strong> (in rosso) sul movimento da annullare</li>
+      <li>Premi <strong>"Conferma"</strong> per procedere</li>
+    </ol>
+
+    <h3>Come stornare dalla pagina Movimenti</h3>
+    <ol class="steps">
+      <li>Vai nella pagina <strong>Movimenti</strong></li>
+      <li>Trova il movimento da annullare</li>
+      <li>Premi l'icona <strong>&#8617;</strong> (freccia indietro) a destra del costo</li>
+      <li>Premi il <strong>bottone rosso</strong> per confermare</li>
+    </ol>
+
+    <h3>Come riconoscere i movimenti stornati</h3>
+    <table>
+      <thead>
+        <tr><th>Etichetta</th><th>Aspetto</th><th>Significato</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-red">STORNATO</span></td>
+          <td>Nome barrato, riga sbiadita</td>
+          <td>Questo movimento &egrave; stato annullato</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-red">STORNO</span></td>
+          <td>Icona &#8617; rossa</td>
+          <td>Questo &egrave; il movimento di correzione</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="alert alert-info">
+      <strong>Nota:</strong> I totali mensili del cantiere vengono ricalcolati automaticamente escludendo i movimenti stornati.
+    </div>
+  </section>
+
+  <!-- CANTIERI -->
+  <section id="cantieri">
+    <h2>Cantieri</h2>
+    <p>I cantieri (clienti/sedi di lavoro) a cui viene assegnata la merce.</p>
+
+    <h3>Lista cantieri</h3>
+    <ul>
+      <li><strong>Ricerca</strong> per nome, codice, indirizzo o citt&agrave;</li>
+      <li><strong>Filtro per gruppo</strong> cliente (es. "IMPRESA SANGALLI", "FARMACIE POMI")</li>
+      <li>Ogni cantiere mostra il <strong>costo del mese corrente</strong> (somma degli scarichi)</li>
+      <li>Tocca la freccia per vedere i <strong>dipendenti assegnati</strong></li>
+    </ul>
+
+    <h3>Dettaglio cantiere</h3>
+    <p>Tocca un cantiere per vedere:</p>
+    <ul>
+      <li><strong>Costo mese corrente</strong> e <strong>totale storico</strong></li>
+      <li><strong>Informazioni</strong>: indirizzo, contatti, P.IVA, gruppo</li>
+      <li><strong>Prodotti per mese</strong>: tutti i prodotti scaricati, raggruppati per mese, con drill-down sui singoli movimenti</li>
+    </ul>
+
+    <h3>Creare un cantiere <span class="badge badge-red">Solo Admin</span></h3>
+    <p>Dalla lista cantieri, tocca il bottone <strong>+</strong> e compila i dati. Il codice viene generato automaticamente.</p>
+  </section>
+
+  <!-- FORNITORI -->
+  <section id="fornitori">
+    <h2>Fornitori</h2>
+    <p>L'anagrafica dei fornitori di prodotti. <span class="badge badge-violet">Manager</span> e <span class="badge badge-red">Admin</span> possono gestirli.</p>
+
+    <ul>
+      <li>Cerca fornitori per nome o codice</li>
+      <li>Modifica i dati di contatto (telefono, email, indirizzo)</li>
+      <li>Il codice fornitore (FOR001, FOR002...) &egrave; assegnato automaticamente</li>
+    </ul>
+  </section>
+
+  <!-- ETICHETTE -->
+  <section id="etichette">
+    <h2>Stampa Etichette</h2>
+    <p>Genera PDF con etichette barcode da stampare e attaccare ai prodotti. <span class="badge badge-violet">Manager</span> e <span class="badge badge-red">Admin</span>.</p>
+
+    <h3>Formati disponibili</h3>
+    <table>
+      <thead>
+        <tr><th>Formato</th><th>Dimensione</th><th>Uso</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>DYMO</strong></td><td>36 &times; 89 mm</td><td>Stampante DYMO a rotolo</td></tr>
+        <tr><td><strong>Avery</strong></td><td>65 per foglio A4</td><td>Fogli adesivi A4</td></tr>
+        <tr><td><strong>Small</strong></td><td>48.5 &times; 25.4 mm</td><td>Etichette piccole</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Come stampare</h3>
+    <ol class="steps">
+      <li>Scegli il formato (DYMO, Avery, Small)</li>
+      <li>Cerca e seleziona i prodotti con le checkbox</li>
+      <li>Imposta la <strong>quantit&agrave; di etichette</strong> per ogni prodotto</li>
+      <li>Premi <strong>"Stampa PDF"</strong></li>
+      <li>Scarica il PDF e stampalo</li>
+    </ol>
+
+    <p>Ogni etichetta contiene: nome prodotto, quantit&agrave; per confezione e barcode (BPCxxxxx).</p>
+  </section>
+
+  <!-- REPORT -->
+  <section id="report">
+    <h2>Report ed Esportazioni <span class="badge badge-red">Solo Admin</span></h2>
+    <p>Esporta dati in formato Excel (.xlsx) per analisi e stampa.</p>
+
+    <h3>Report disponibili</h3>
+    <table>
+      <thead>
+        <tr><th>Report</th><th>Contenuto</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Inventario</strong></td><td>Tutti i prodotti con giacenza attuale e valore</td></tr>
+        <tr><td><strong>Movimenti</strong></td><td>Storico carichi/scarichi con filtri per data, fornitore, cantiere</td></tr>
+        <tr><td><strong>Cantieri</strong></td><td>Elenco cantieri con budget e spesa</td></tr>
+        <tr><td><strong>Scorte basse</strong></td><td>Prodotti sotto la scorta minima</td></tr>
+      </tbody>
+    </table>
+
+    <p>Puoi impostare un <strong>intervallo di date</strong> e filtrare per fornitore o cantiere prima di esportare.</p>
+  </section>
+
+  <!-- UTENTI -->
+  <section id="utenti">
+    <h2>Gestione Utenti <span class="badge badge-red">Solo Admin</span></h2>
+    <p>Crea e gestisci gli account degli operatori.</p>
+
+    <h3>Creare un utente</h3>
+    <ol class="steps">
+      <li>Vai su Impostazioni &rarr; Utenti</li>
+      <li>Premi <strong>"+ Crea Utente"</strong></li>
+      <li>Inserisci email, nome completo e ruolo</li>
+      <li>Il sistema genera una <strong>password temporanea</strong> (mostrata una sola volta!)</li>
+      <li>Comunica email e password al dipendente</li>
+    </ol>
+
+    <h3>Assegnare cantieri a un operatore</h3>
+    <ol class="steps">
+      <li>Dalla lista utenti, tocca l'icona modifica</li>
+      <li>Vai al tab <strong>"Cantieri"</strong></li>
+      <li>Cerca e seleziona i cantieri da assegnare</li>
+      <li>Salva</li>
+    </ol>
+  </section>
+
+  <!-- BARCODE -->
+  <section id="barcode">
+    <h2>Scansione Barcode</h2>
+
+    <h3>Pistola USB (desktop)</h3>
+    <p>Su computer, collega la pistola barcode USB. L'app rileva automaticamente la scansione &mdash; il prodotto viene selezionato senza toccare nulla.</p>
+    <div class="alert alert-info">
+      L'indicatore "Pistola USB attiva" appare in alto quando la pistola &egrave; pronta.
+    </div>
+
+    <h3>Fotocamera (mobile)</h3>
+    <p>Su telefono, tocca l'icona fotocamera accanto alla barra di ricerca per attivare lo scanner. Inquadra il barcode e il prodotto viene selezionato automaticamente.</p>
+
+    <h3>Formati barcode</h3>
+    <p>Ogni prodotto ha un barcode nel formato <strong>BPCxxxxx</strong> (es. BPC00001, BPC00042). Questo codice viene stampato sulle etichette e usato per la scansione veloce.</p>
+  </section>
+
   <footer class="footer">
-    <p>BP Cleaning App - Manuale Gestione Dipendenti e Cantieri</p>
-    <p>Ultimo aggiornamento: Febbraio 2026</p>
+    <p>BP Cleaning App &mdash; Guida d'Uso</p>
+    <p>Ultimo aggiornamento: Marzo 2026</p>
   </footer>
 
 </div>

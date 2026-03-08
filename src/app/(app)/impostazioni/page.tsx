@@ -14,7 +14,8 @@ import {
   Briefcase,
   Users,
   Truck,
-  Tag
+  Tag,
+  HelpCircle
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -141,6 +142,24 @@ export default function ImpostazioniPage() {
               <ChevronRight className="w-5 h-5 text-gray-300" />
             </Link>
           )}
+        </div>
+
+        {/* Guida */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider px-1">
+            Supporto
+          </h3>
+
+          <a href="/manuale.html" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-200">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-indigo-100">
+              <HelpCircle className="w-5 h-5 text-indigo-600" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-semibold text-gray-900">Guida</h4>
+              <p className="text-sm text-gray-500">Manuale d&apos;uso dell&apos;app</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-300" />
+          </a>
         </div>
 
         {/* Sign out */}
