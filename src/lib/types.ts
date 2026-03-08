@@ -98,6 +98,8 @@ export interface Movement {
   notes?: string
   movement_date: string
   created_at: string
+  is_reversed?: boolean
+  reversal_of_id?: string
 }
 
 // View types

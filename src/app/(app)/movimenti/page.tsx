@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDateTime, cn } from '@/lib/utils'
@@ -10,12 +10,12 @@ import {
   ClipboardList,
   ArrowDownToLine,
   ArrowUpFromLine,
-  Filter,
-  ChevronRight,
   ChevronLeft,
   Users,
   ShieldAlert,
-  Loader2
+  Loader2,
+  Undo2,
+  X
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -23,6 +23,8 @@ export default function MovimentiPage() {
   const [movements, setMovements] = useState<Movement[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'carico' | 'scarico'>('all')
+  const [confirmReversalId, setConfirmReversalId] = useState<string | null>(null)
+  const [reversingId, setReversingId] = useState<string | null>(null)
   const { user, isSuperuser, isManager, loading: authLoading } = useAuth()
   const supabase = createClient()
   const router = useRouter()
@@ -66,7 +68,50 @@ export default function MovimentiPage() {
     setLoading(false)
   }
 
-  const filteredMovements = movements.filter(m => 
+  const handleReversal = useCallback(async (movement: Movement) => {
+    if (!user || reversingId) return
+
+    setReversingId(movement.id)
+    setConfirmReversalId(null)
+
+    try {
+      const reverseType = movement.type === 'scarico' ? 'carico' : 'scarico'
+      const dateLabel = new Date(movement.created_at).toLocaleDateString('it-IT')
+
+      // 1. Create reversal movement
+      const { error: insertError } = await supabase.from('movements').insert({
+        type: reverseType,
+        product_id: movement.product_id,
+        worksite_id: movement.worksite_id,
+        quantity: movement.quantity,
+        unit_cost_at_time: movement.unit_cost_at_time,
+        operator_id: user.id,
+        movement_date: new Date().toISOString().split('T')[0],
+        notes: `Storno ${movement.type} del ${dateLabel}`,
+        reversal_of_id: movement.id
+      })
+
+      if (insertError) throw insertError
+
+      // 2. Mark original as reversed
+      const { error: updateError } = await supabase
+        .from('movements')
+        .update({ is_reversed: true })
+        .eq('id', movement.id)
+
+      if (updateError) throw updateError
+
+      // 3. Refresh
+      await fetchMovements()
+    } catch (error) {
+      console.error('Errore storno:', error)
+      alert('Errore durante lo storno del movimento')
+    } finally {
+      setReversingId(null)
+    }
+  }, [user, reversingId, supabase])
+
+  const filteredMovements = movements.filter(m =>
     filter === 'all' || m.type === filter
   )
 
@@ -188,52 +233,116 @@ export default function MovimentiPage() {
               {date}
             </h3>
             <div className="space-y-2">
-              {items.map(movement => (
-                <div
-                  key={movement.id}
-                  className={cn(
-                    'list-item border-l-4',
-                    movement.type === 'carico' ? 'border-l-emerald-500' : 'border-l-orange-500'
-                  )}
-                >
-                  <div className={cn(
-                    'list-item-icon',
-                    movement.type === 'carico' ? 'bg-emerald-100' : 'bg-orange-100'
-                  )}>
-                    {movement.type === 'carico' ? (
-                      <ArrowDownToLine className={cn(
-                        'w-5 h-5',
-                        'text-emerald-600'
-                      )} />
-                    ) : (
-                      <ArrowUpFromLine className={cn(
-                        'w-5 h-5',
-                        'text-orange-600'
-                      )} />
+              {items.map(movement => {
+                const isReversal = !!(movement as any).reversal_of_id
+                const isReversed = movement.is_reversed
+
+                return (
+                  <div
+                    key={movement.id}
+                    className={cn(
+                      'list-item border-l-4',
+                      isReversed
+                        ? 'border-l-gray-300 opacity-50'
+                        : isReversal
+                          ? 'border-l-red-400'
+                          : movement.type === 'carico' ? 'border-l-emerald-500' : 'border-l-orange-500'
                     )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-gray-900 truncate">
-                      {(movement as any).product?.name}
-                    </h4>
-                    <p className="text-sm text-gray-500">
-                      {movement.type === 'carico' ? '+' : '-'}{movement.quantity} pz
-                      {movement.type === 'scarico' && (movement as any).worksite && (
-                        <> → {(movement as any).worksite.code}</>
+                  >
+                    <div className={cn(
+                      'list-item-icon',
+                      isReversal
+                        ? 'bg-red-50'
+                        : movement.type === 'carico' ? 'bg-emerald-100' : 'bg-orange-100'
+                    )}>
+                      {isReversal ? (
+                        <Undo2 className="w-5 h-5 text-red-500" />
+                      ) : movement.type === 'carico' ? (
+                        <ArrowDownToLine className="w-5 h-5 text-emerald-600" />
+                      ) : (
+                        <ArrowUpFromLine className="w-5 h-5 text-orange-600" />
                       )}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {(movement as any).operator?.full_name} • {formatDateTime(movement.created_at)}
-                    </p>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className={cn(
+                          'font-semibold truncate',
+                          isReversed ? 'text-gray-400 line-through' : 'text-gray-900'
+                        )}>
+                          {(movement as any).product?.name}
+                        </h4>
+                        {isReversed && (
+                          <span className="text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded shrink-0">
+                            STORNATO
+                          </span>
+                        )}
+                        {isReversal && (
+                          <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded shrink-0">
+                            STORNO
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        {movement.type === 'carico' ? '+' : '-'}{movement.quantity} pz
+                        {movement.type === 'scarico' && (movement as any).worksite && (
+                          <> &rarr; {(movement as any).worksite.code}</>
+                        )}
+                        {isReversal && movement.worksite_id && (movement as any).worksite && (
+                          <> &rarr; {(movement as any).worksite.code}</>
+                        )}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {(movement as any).operator?.full_name} &middot; {formatDateTime(movement.created_at)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        'font-bold',
+                        isReversed ? 'text-gray-400'
+                          : isReversal ? 'text-red-500'
+                          : movement.type === 'carico' ? 'text-emerald-600' : 'text-orange-600'
+                      )}>
+                        {movement.type === 'carico' ? '+' : '-'}{formatCurrency(movement.total_cost)}
+                      </span>
+
+                      {/* Storno button - only for non-reversed, non-reversal movements */}
+                      {!isReversed && !isReversal && (
+                        <>
+                          {confirmReversalId === movement.id ? (
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => handleReversal(movement as any)}
+                                disabled={reversingId === movement.id}
+                                className="flex items-center gap-1 px-2 py-1.5 bg-red-500 text-white text-xs font-semibold rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                              >
+                                {reversingId === movement.id ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Undo2 className="w-3 h-3" />
+                                )}
+                              </button>
+                              <button
+                                onClick={() => setConfirmReversalId(null)}
+                                className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmReversalId(movement.id)}
+                              className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Storna movimento"
+                            >
+                              <Undo2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <span className={cn(
-                    'font-bold',
-                    movement.type === 'carico' ? 'text-emerald-600' : 'text-orange-600'
-                  )}>
-                    {movement.type === 'carico' ? '+' : '-'}{formatCurrency(movement.total_cost)}
-                  </span>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         ))}

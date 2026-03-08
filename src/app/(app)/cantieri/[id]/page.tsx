@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
@@ -18,12 +18,16 @@ import {
   ChevronDown,
   ChevronUp,
   Edit2,
-  Tag
+  Tag,
+  Undo2,
+  Loader2,
+  X,
 } from 'lucide-react'
 import Link from 'next/link'
 
-interface MovementWithProduct extends Movement {
+interface MovementWithProduct extends Omit<Movement, 'operator'> {
   product: Product
+  operator?: { full_name: string }
 }
 
 interface MonthlyProductSummary {
@@ -32,6 +36,7 @@ interface MonthlyProductSummary {
   totalQuantity: number
   totalCost: number
   unit: string
+  movements: MovementWithProduct[]
 }
 
 interface MonthData {
@@ -44,11 +49,14 @@ interface MonthData {
 export default function CantiereDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const { isSuperuser } = useAuth()
+  const { user, isSuperuser } = useAuth()
   const [worksite, setWorksite] = useState<Worksite | null>(null)
   const [movements, setMovements] = useState<MovementWithProduct[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set())
+  const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set())
+  const [reversingId, setReversingId] = useState<string | null>(null)
+  const [confirmReversalId, setConfirmReversalId] = useState<string | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -71,12 +79,11 @@ export default function CantiereDetailPage() {
 
     setWorksite(wsData)
 
-    // Fetch ALL movements for this worksite (no limit)
+    // Fetch ALL movements for this worksite (scarico + storno carico)
     const { data: movData } = await supabase
       .from('movements')
-      .select('*, product:products(*)')
+      .select('*, product:products(*), operator:profiles(full_name)')
       .eq('worksite_id', params.id)
-      .eq('type', 'scarico')
       .order('created_at', { ascending: false })
 
     if (movData) {
@@ -86,11 +93,20 @@ export default function CantiereDetailPage() {
     setLoading(false)
   }
 
+  // Filter active (non-reversed) scarico movements for aggregation
+  const activeMovements = useMemo(() =>
+    movements.filter(m => m.type === 'scarico' && !m.is_reversed),
+    [movements]
+  )
+
   // Group movements by month and aggregate products
   const monthlyData = useMemo(() => {
     const monthMap = new Map<string, Map<string, MonthlyProductSummary>>()
 
-    movements.forEach((mov) => {
+    // All scarico movements (including reversed, for drill-down)
+    const scaricoMovements = movements.filter(m => m.type === 'scarico')
+
+    scaricoMovements.forEach((mov) => {
       const date = new Date(mov.created_at)
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 
@@ -103,20 +119,23 @@ export default function CantiereDetailPage() {
 
       if (productMap.has(productId)) {
         const existing = productMap.get(productId)!
-        existing.totalQuantity += mov.quantity
-        existing.totalCost += mov.total_cost
+        if (!mov.is_reversed) {
+          existing.totalQuantity += mov.quantity
+          existing.totalCost += mov.total_cost
+        }
+        existing.movements.push(mov)
       } else {
         productMap.set(productId, {
           productId,
           productName: mov.product?.name || 'Prodotto sconosciuto',
-          totalQuantity: mov.quantity,
-          totalCost: mov.total_cost,
-          unit: mov.product?.unit || 'pz'
+          totalQuantity: mov.is_reversed ? 0 : mov.quantity,
+          totalCost: mov.is_reversed ? 0 : mov.total_cost,
+          unit: mov.product?.unit || 'pz',
+          movements: [mov]
         })
       }
     })
 
-    // Convert to array and sort by month descending
     const result: MonthData[] = []
     const monthNames = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
       'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
@@ -125,24 +144,28 @@ export default function CantiereDetailPage() {
       .sort((a, b) => b[0].localeCompare(a[0]))
       .forEach(([key, productMap]) => {
         const [year, month] = key.split('-')
-        const products = Array.from(productMap.values()).sort((a, b) => b.totalCost - a.totalCost)
+        const products = Array.from(productMap.values())
+          .filter(p => p.totalQuantity > 0 || p.movements.some(m => m.is_reversed))
+          .sort((a, b) => b.totalCost - a.totalCost)
         const totalCost = products.reduce((sum, p) => sum + p.totalCost, 0)
 
-        result.push({
-          key,
-          label: `${monthNames[parseInt(month) - 1]} ${year}`,
-          products,
-          totalCost
-        })
+        if (products.length > 0) {
+          result.push({
+            key,
+            label: `${monthNames[parseInt(month) - 1]} ${year}`,
+            products,
+            totalCost
+          })
+        }
       })
 
     return result
   }, [movements])
 
-  // Calculate totals
+  // Calculate totals (only active movements)
   const totalSpent = useMemo(() =>
-    movements.reduce((sum, m) => sum + (m.total_cost || 0), 0),
-    [movements]
+    activeMovements.reduce((sum, m) => sum + (m.total_cost || 0), 0),
+    [activeMovements]
   )
 
   const currentMonthSpent = useMemo(() => {
@@ -170,6 +193,59 @@ export default function CantiereDetailPage() {
       return next
     })
   }
+
+  const toggleProduct = (monthKey: string, productId: string) => {
+    const compositeKey = `${monthKey}::${productId}`
+    setExpandedProducts(prev => {
+      const next = new Set(prev)
+      if (next.has(compositeKey)) {
+        next.delete(compositeKey)
+      } else {
+        next.add(compositeKey)
+      }
+      return next
+    })
+  }
+
+  const handleReversal = useCallback(async (movement: MovementWithProduct) => {
+    if (!user || reversingId) return
+
+    setReversingId(movement.id)
+    setConfirmReversalId(null)
+
+    try {
+      // 1. Create reversal movement (carico to restore stock)
+      const { error: insertError } = await supabase.from('movements').insert({
+        type: 'carico',
+        product_id: movement.product_id,
+        worksite_id: movement.worksite_id,
+        quantity: movement.quantity,
+        unit_cost_at_time: movement.unit_cost_at_time,
+        operator_id: user.id,
+        movement_date: new Date().toISOString().split('T')[0],
+        notes: `Storno scarico del ${new Date(movement.created_at).toLocaleDateString('it-IT')}`,
+        reversal_of_id: movement.id
+      })
+
+      if (insertError) throw insertError
+
+      // 2. Mark original as reversed
+      const { error: updateError } = await supabase
+        .from('movements')
+        .update({ is_reversed: true })
+        .eq('id', movement.id)
+
+      if (updateError) throw updateError
+
+      // 3. Refresh data
+      await fetchWorksite()
+    } catch (error) {
+      console.error('Errore storno:', error)
+      alert('Errore durante lo storno del movimento')
+    } finally {
+      setReversingId(null)
+    }
+  }, [user, reversingId, supabase])
 
   if (loading) {
     return (
@@ -340,24 +416,121 @@ export default function CantiereDetailPage() {
 
                 {expandedMonths.has(month.key) && (
                   <div className="border-t border-gray-100 divide-y divide-gray-50">
-                    {month.products.map((product) => (
-                      <div
-                        key={product.productId}
-                        className="px-4 py-3 flex items-center justify-between"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {product.productName}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {product.totalQuantity} {product.unit}
-                          </p>
+                    {month.products.map((product) => {
+                      const compositeKey = `${month.key}::${product.productId}`
+                      const isExpanded = expandedProducts.has(compositeKey)
+                      const hasMultipleMovements = product.movements.length > 1
+                      const hasReversible = product.movements.some(m => !m.is_reversed)
+
+                      return (
+                        <div key={product.productId}>
+                          <button
+                            onClick={() => toggleProduct(month.key, product.productId)}
+                            className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50/50 transition-colors"
+                          >
+                            <div className="flex-1 min-w-0 text-left">
+                              <p className={cn(
+                                'text-sm font-medium truncate',
+                                product.totalQuantity === 0 ? 'text-gray-400 line-through' : 'text-gray-900'
+                              )}>
+                                {product.productName}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {product.totalQuantity} {product.unit}
+                                {product.movements.some(m => m.is_reversed) && (
+                                  <span className="ml-1.5 text-red-400">(con storni)</span>
+                                )}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 ml-4">
+                              <p className={cn(
+                                'text-sm font-semibold',
+                                product.totalQuantity === 0 ? 'text-gray-400' : 'text-gray-900'
+                              )}>
+                                {formatCurrency(product.totalCost)}
+                              </p>
+                              {isExpanded ? (
+                                <ChevronUp className="w-4 h-4 text-gray-300" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4 text-gray-300" />
+                              )}
+                            </div>
+                          </button>
+
+                          {/* Drill-down: individual movements */}
+                          {isExpanded && (
+                            <div className="bg-gray-50/50 border-t border-gray-100">
+                              {product.movements
+                                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                                .map((mov) => (
+                                <div
+                                  key={mov.id}
+                                  className={cn(
+                                    'px-4 py-2.5 flex items-center gap-3 border-b border-gray-100/50 last:border-b-0',
+                                    mov.is_reversed && 'opacity-50'
+                                  )}
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <p className={cn(
+                                        'text-xs font-medium',
+                                        mov.is_reversed ? 'text-gray-400 line-through' : 'text-gray-700'
+                                      )}>
+                                        {mov.quantity} {product.unit} &middot; {formatCurrency(mov.total_cost)}
+                                      </p>
+                                      {mov.is_reversed && (
+                                        <span className="text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded">
+                                          STORNATO
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[11px] text-gray-400">
+                                      {mov.operator?.full_name} &middot; {new Date(mov.created_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                    </p>
+                                  </div>
+
+                                  {/* Reversal button */}
+                                  {!mov.is_reversed && (
+                                    <>
+                                      {confirmReversalId === mov.id ? (
+                                        <div className="flex items-center gap-1.5">
+                                          <button
+                                            onClick={() => handleReversal(mov)}
+                                            disabled={reversingId === mov.id}
+                                            className="flex items-center gap-1 px-2.5 py-1.5 bg-red-500 text-white text-xs font-semibold rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                                          >
+                                            {reversingId === mov.id ? (
+                                              <Loader2 className="w-3 h-3 animate-spin" />
+                                            ) : (
+                                              <Undo2 className="w-3 h-3" />
+                                            )}
+                                            Conferma
+                                          </button>
+                                          <button
+                                            onClick={() => setConfirmReversalId(null)}
+                                            className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                                          >
+                                            <X className="w-3.5 h-3.5" />
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <button
+                                          onClick={() => setConfirmReversalId(mov.id)}
+                                          className="flex items-center gap-1 px-2.5 py-1.5 text-red-500 hover:bg-red-50 text-xs font-medium rounded-lg transition-colors"
+                                        >
+                                          <Undo2 className="w-3.5 h-3.5" />
+                                          Storna
+                                        </button>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <p className="text-sm font-semibold text-gray-900 ml-4">
-                          {formatCurrency(product.totalCost)}
-                        </p>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
               </div>
