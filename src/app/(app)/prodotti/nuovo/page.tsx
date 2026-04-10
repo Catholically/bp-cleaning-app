@@ -37,6 +37,9 @@ export default function NuovoProdottoPage() {
   const [minStock, setMinStock] = useState(5)
   const [supplierId, setSupplierId] = useState('')
   const [notes, setNotes] = useState('')
+  const [serialNumber, setSerialNumber] = useState('')
+  const [purchaseDate, setPurchaseDate] = useState('')
+  const [warrantyMonths, setWarrantyMonths] = useState(24)
 
   useEffect(() => {
     if (!isSuperuser) {
@@ -67,6 +70,7 @@ export default function NuovoProdottoPage() {
       deodorante: 'DEO',
       accessorio: 'ACC',
       attrezzatura: 'ATT',
+      macchinario: 'MAC',
       altro: 'ALT'
     }
 
@@ -141,7 +145,10 @@ export default function NuovoProdottoPage() {
           min_stock: minStock,
           supplier_id: supplierId || null,
           notes: notes || null,
-          is_active: true
+          is_active: true,
+          serial_number: category === 'macchinario' ? (serialNumber || null) : null,
+          purchase_date: category === 'macchinario' ? (purchaseDate || null) : null,
+          warranty_months: category === 'macchinario' ? (warrantyMonths || null) : null
         })
 
       if (error) {
@@ -327,6 +334,56 @@ export default function NuovoProdottoPage() {
             SKU: BP-XXX001 (es. BP-DET001) • Barcode: BPC00001
           </p>
         </div>
+
+        {/* Campi Macchinario (condizionali) */}
+        {category === 'macchinario' && (
+          <>
+            <div className="bg-amber-50 rounded-2xl border border-amber-200 p-4">
+              <p className="text-sm text-amber-800 font-medium mb-1">Dati Macchinario</p>
+              <p className="text-xs text-amber-600">Questi campi sono specifici per i macchinari</p>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Numero di Serie
+              </label>
+              <input
+                type="text"
+                value={serialNumber}
+                onChange={(e) => setSerialNumber(e.target.value)}
+                placeholder="Es. SN-2026-ABC123"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Data Acquisto
+                </label>
+                <input
+                  type="date"
+                  value={purchaseDate}
+                  onChange={(e) => setPurchaseDate(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Garanzia (mesi)
+                </label>
+                <input
+                  type="number"
+                  value={warrantyMonths}
+                  onChange={(e) => setWarrantyMonths(Number(e.target.value))}
+                  min="0"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Note */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">

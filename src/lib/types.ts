@@ -24,14 +24,15 @@ export interface Supplier {
   updated_at: string
 }
 
-export type ProductCategory = 
-  | 'detergente' 
-  | 'sgrassatore' 
-  | 'disinfettante' 
+export type ProductCategory =
+  | 'detergente'
+  | 'sgrassatore'
+  | 'disinfettante'
   | 'lucidante'
-  | 'deodorante' 
-  | 'accessorio' 
-  | 'attrezzatura' 
+  | 'deodorante'
+  | 'accessorio'
+  | 'attrezzatura'
+  | 'macchinario'
   | 'altro'
 
 export type ProductUnit = 'litri' | 'pezzi' | 'kg' | 'ml' | 'rotoli' | 'confezioni'
@@ -52,6 +53,9 @@ export interface Product {
   image_url?: string
   notes?: string
   is_active: boolean
+  serial_number?: string
+  purchase_date?: string
+  warranty_months?: number
   created_at: string
   updated_at: string
 }
@@ -155,6 +159,9 @@ export interface ProductFormData {
   min_stock: number
   supplier_id?: string
   notes?: string
+  serial_number?: string
+  purchase_date?: string
+  warranty_months?: number
 }
 
 export interface WorksiteFormData {
@@ -197,6 +204,7 @@ export const CATEGORY_LABELS: Record<ProductCategory, string> = {
   deodorante: 'Deodorante',
   accessorio: 'Accessorio',
   attrezzatura: 'Attrezzatura',
+  macchinario: 'Macchinario',
   altro: 'Altro'
 }
 
@@ -224,6 +232,7 @@ export const CATEGORY_ICONS: Record<ProductCategory, string> = {
   deodorante: '🌸',
   accessorio: '🧤',
   attrezzatura: '🛠️',
+  macchinario: '⚙️',
   altro: '📦'
 }
 
@@ -245,14 +254,15 @@ export const CATEGORY_TO_TYPE: Record<ProductCategory, ProductType> = {
   deodorante: 'consumabile',
   accessorio: 'attrezzatura',
   attrezzatura: 'attrezzatura',
+  macchinario: 'attrezzatura',
   altro: 'attrezzatura'
 }
 
 // Categorie per tipo (per filtri dropdown)
 export const CATEGORIES_BY_TYPE: Record<ProductType, ProductCategory[]> = {
-  all: ['detergente', 'sgrassatore', 'disinfettante', 'lucidante', 'deodorante', 'accessorio', 'attrezzatura', 'altro'],
+  all: ['detergente', 'sgrassatore', 'disinfettante', 'lucidante', 'deodorante', 'accessorio', 'attrezzatura', 'macchinario', 'altro'],
   consumabile: ['detergente', 'sgrassatore', 'disinfettante', 'lucidante', 'deodorante'],
-  attrezzatura: ['accessorio', 'attrezzatura', 'altro']
+  attrezzatura: ['accessorio', 'attrezzatura', 'macchinario', 'altro']
 }
 
 // Helper function per filtrare prodotti per tipo

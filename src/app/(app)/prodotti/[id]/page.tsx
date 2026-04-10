@@ -17,7 +17,10 @@ import {
   TrendingDown,
   Edit,
   Trash2,
-  FileText
+  FileText,
+  ShieldCheck,
+  ShieldAlert,
+  Hash
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -209,6 +212,66 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Machinery Info */}
+        {product.category === 'macchinario' && (product.serial_number || product.purchase_date || product.warranty_months) && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100">
+            <div className="p-4">
+              <h3 className="font-semibold text-gray-900 text-sm mb-3">Dati Macchinario</h3>
+              <div className="space-y-3">
+                {product.serial_number && (
+                  <div className="flex items-center gap-4">
+                    <Hash className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <p className="text-xs text-gray-500">Numero di Serie</p>
+                      <p className="font-mono text-gray-900">{product.serial_number}</p>
+                    </div>
+                  </div>
+                )}
+                {product.purchase_date && (
+                  <div className="flex items-center gap-4">
+                    <Calendar className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <p className="text-xs text-gray-500">Data Acquisto</p>
+                      <p className="text-gray-900">{formatDate(product.purchase_date)}</p>
+                    </div>
+                  </div>
+                )}
+                {product.purchase_date && product.warranty_months && (() => {
+                  const purchaseDate = new Date(product.purchase_date!)
+                  const warrantyEnd = new Date(purchaseDate)
+                  warrantyEnd.setMonth(warrantyEnd.getMonth() + product.warranty_months!)
+                  const now = new Date()
+                  const daysLeft = Math.ceil((warrantyEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                  const isExpired = daysLeft < 0
+                  const isExpiringSoon = daysLeft >= 0 && daysLeft <= 90
+
+                  return (
+                    <div className="flex items-center gap-4">
+                      {isExpired ? (
+                        <ShieldAlert className="w-5 h-5 text-red-500" />
+                      ) : (
+                        <ShieldCheck className={cn('w-5 h-5', isExpiringSoon ? 'text-amber-500' : 'text-emerald-500')} />
+                      )}
+                      <div className="flex-1">
+                        <p className="text-xs text-gray-500">Garanzia ({product.warranty_months} mesi)</p>
+                        <p className={cn(
+                          'font-medium',
+                          isExpired ? 'text-red-600' : isExpiringSoon ? 'text-amber-600' : 'text-emerald-600'
+                        )}>
+                          {isExpired
+                            ? `Scaduta il ${formatDate(warrantyEnd.toISOString())}`
+                            : `Scade il ${formatDate(warrantyEnd.toISOString())} (${daysLeft} giorni)`
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })()}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Notes Section */}
         {product.notes && (
