@@ -41,21 +41,7 @@ export default function HomePage() {
   const supabase = createClient()
 
   useEffect(() => {
-    let isMounted = true
-
-    const loadData = async () => {
-      await fetchDashboardData()
-      // Safety: ensure loading is false even if something goes wrong
-      if (isMounted && loading) {
-        setLoading(false)
-      }
-    }
-
-    loadData()
-
-    return () => {
-      isMounted = false
-    }
+    fetchDashboardData()
   }, [])
 
   const fetchDashboardData = async () => {
@@ -88,6 +74,8 @@ export default function HomePage() {
         .from('movements')
         .select('total_cost')
         .eq('type', 'scarico')
+        .neq('is_reversed', true)
+        .is('reversal_of_id', null)
         .gte('created_at', monthStart.toISOString())
 
       const totalStockValue = products?.reduce(

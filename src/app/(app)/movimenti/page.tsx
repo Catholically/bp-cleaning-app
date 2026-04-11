@@ -25,6 +25,7 @@ export default function MovimentiPage() {
   const [filter, setFilter] = useState<'all' | 'carico' | 'scarico'>('all')
   const [confirmReversalId, setConfirmReversalId] = useState<string | null>(null)
   const [reversingId, setReversingId] = useState<string | null>(null)
+  const [reversalQty, setReversalQty] = useState<number>(0)
   const { user, isSuperuser, isManager, loading: authLoading } = useAuth()
   const supabase = createClient()
   const router = useRouter()
@@ -68,11 +69,14 @@ export default function MovimentiPage() {
     setLoading(false)
   }
 
-  const handleReversal = useCallback(async (movement: Movement) => {
+  const handleReversal = useCallback(async (movement: Movement, qty: number) => {
     if (!user || reversingId) return
+    if (qty <= 0 || qty > movement.quantity) return
 
     setReversingId(movement.id)
     setConfirmReversalId(null)
+
+    const isFullReversal = qty === movement.quantity
 
     try {
       const reverseType = movement.type === 'scarico' ? 'carico' : 'scarico'
@@ -83,23 +87,27 @@ export default function MovimentiPage() {
         type: reverseType,
         product_id: movement.product_id,
         worksite_id: movement.worksite_id,
-        quantity: movement.quantity,
+        quantity: qty,
         unit_cost_at_time: movement.unit_cost_at_time,
         operator_id: user.id,
         movement_date: new Date().toISOString().split('T')[0],
-        notes: `Storno ${movement.type} del ${dateLabel}`,
+        notes: isFullReversal
+          ? `Storno ${movement.type} del ${dateLabel}`
+          : `Storno parziale (${qty}/${movement.quantity}) ${movement.type} del ${dateLabel}`,
         reversal_of_id: movement.id
       })
 
       if (insertError) throw insertError
 
-      // 2. Mark original as reversed
-      const { error: updateError } = await supabase
-        .from('movements')
-        .update({ is_reversed: true })
-        .eq('id', movement.id)
+      // 2. Mark original as reversed only if full reversal
+      if (isFullReversal) {
+        const { error: updateError } = await supabase
+          .from('movements')
+          .update({ is_reversed: true })
+          .eq('id', movement.id)
 
-      if (updateError) throw updateError
+        if (updateError) throw updateError
+      }
 
       // 3. Refresh
       await fetchMovements()
@@ -310,9 +318,17 @@ export default function MovimentiPage() {
                         <>
                           {confirmReversalId === movement.id ? (
                             <div className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                value={reversalQty}
+                                onChange={(e) => setReversalQty(Math.min(Math.max(1, Number(e.target.value)), movement.quantity))}
+                                min={1}
+                                max={movement.quantity}
+                                className="w-14 px-2 py-1.5 text-xs text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-red-400"
+                              />
                               <button
-                                onClick={() => handleReversal(movement as any)}
-                                disabled={reversingId === movement.id}
+                                onClick={() => handleReversal(movement as any, reversalQty)}
+                                disabled={reversingId === movement.id || reversalQty <= 0}
                                 className="flex items-center gap-1 px-2 py-1.5 bg-red-500 text-white text-xs font-semibold rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
                               >
                                 {reversingId === movement.id ? (
@@ -330,7 +346,7 @@ export default function MovimentiPage() {
                             </div>
                           ) : (
                             <button
-                              onClick={() => setConfirmReversalId(movement.id)}
+                              onClick={() => { setConfirmReversalId(movement.id); setReversalQty(movement.quantity) }}
                               className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                               title="Storna movimento"
                             >

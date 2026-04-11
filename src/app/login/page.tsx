@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Loader2, Mail, Lock, Eye, EyeOff, User } from 'lucide-react'
+import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import Image from 'next/image'
 
 export default function LoginPage() {
@@ -11,8 +11,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [mode, setMode] = useState<'login' | 'signup'>('login')
-  const [fullName, setFullName] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
   const router = useRouter()
@@ -24,29 +22,13 @@ export default function LoginPage() {
     setError('')
 
     try {
-      if (mode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-        if (error) throw error
-        router.push('/')
-        router.refresh()
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: fullName,
-              role: 'user'
-            }
-          }
-        })
-        if (error) throw error
-        setError('Controlla la tua email per confermare la registrazione')
-        setMode('login')
-      }
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (error) throw error
+      router.push('/')
+      router.refresh()
     } catch (err: any) {
       setError(err.message || 'Si è verificato un errore')
     } finally {
@@ -91,25 +73,10 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           <div className="bg-white rounded-3xl shadow-2xl p-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
-              {mode === 'login' ? 'Bentornato!' : 'Crea Account'}
+              Bentornato!
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {mode === 'signup' && (
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-sky-500">
-                    <User className="w-5 h-5" />
-                  </div>
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 border-sky-200 focus:border-sky-500 focus:outline-none transition-colors text-gray-700 placeholder-gray-400"
-                    placeholder="Nome completo"
-                    required
-                  />
-                </div>
-              )}
 
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-sky-500">
@@ -148,11 +115,7 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <div className={`text-sm p-3 rounded-xl ${
-                  error.includes('email') || error.includes('Controlla')
-                    ? 'bg-sky-50 text-sky-700 border border-sky-200'
-                    : 'bg-red-50 text-red-700 border border-red-200'
-                }`}>
+                <div className="text-sm p-3 rounded-xl bg-red-50 text-red-700 border border-red-200">
                   {error}
                 </div>
               )}
@@ -164,28 +127,11 @@ export default function LoginPage() {
               >
                 {loading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
-                ) : mode === 'login' ? (
-                  'Accedi'
                 ) : (
-                  'Registrati'
+                  'Accedi'
                 )}
               </button>
             </form>
-
-            <div className="mt-6 text-center">
-              <span className="text-gray-500 text-sm">
-                {mode === 'login' ? 'Non hai un account? ' : 'Hai già un account? '}
-              </span>
-              <button
-                onClick={() => {
-                  setMode(mode === 'login' ? 'signup' : 'login')
-                  setError('')
-                }}
-                className="text-sm text-sky-600 hover:text-sky-700 font-semibold transition-colors"
-              >
-                {mode === 'login' ? 'Registrati' : 'Accedi'}
-              </button>
-            </div>
           </div>
 
           {/* Footer with reflection effect */}

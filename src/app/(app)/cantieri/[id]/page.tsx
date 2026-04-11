@@ -57,6 +57,7 @@ export default function CantiereDetailPage() {
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set())
   const [reversingId, setReversingId] = useState<string | null>(null)
   const [confirmReversalId, setConfirmReversalId] = useState<string | null>(null)
+  const [reversalQty, setReversalQty] = useState<number>(0)
   const supabase = createClient()
 
   useEffect(() => {
@@ -207,11 +208,14 @@ export default function CantiereDetailPage() {
     })
   }
 
-  const handleReversal = useCallback(async (movement: MovementWithProduct) => {
+  const handleReversal = useCallback(async (movement: MovementWithProduct, qty: number) => {
     if (!user || reversingId) return
+    if (qty <= 0 || qty > movement.quantity) return
 
     setReversingId(movement.id)
     setConfirmReversalId(null)
+
+    const isFullReversal = qty === movement.quantity
 
     try {
       // 1. Create reversal movement (carico to restore stock)
@@ -219,23 +223,27 @@ export default function CantiereDetailPage() {
         type: 'carico',
         product_id: movement.product_id,
         worksite_id: movement.worksite_id,
-        quantity: movement.quantity,
+        quantity: qty,
         unit_cost_at_time: movement.unit_cost_at_time,
         operator_id: user.id,
         movement_date: new Date().toISOString().split('T')[0],
-        notes: `Storno scarico del ${new Date(movement.created_at).toLocaleDateString('it-IT')}`,
+        notes: isFullReversal
+          ? `Storno scarico del ${new Date(movement.created_at).toLocaleDateString('it-IT')}`
+          : `Storno parziale (${qty}/${movement.quantity}) scarico del ${new Date(movement.created_at).toLocaleDateString('it-IT')}`,
         reversal_of_id: movement.id
       })
 
       if (insertError) throw insertError
 
-      // 2. Mark original as reversed
-      const { error: updateError } = await supabase
-        .from('movements')
-        .update({ is_reversed: true })
-        .eq('id', movement.id)
+      // 2. Mark original as reversed only if full reversal
+      if (isFullReversal) {
+        const { error: updateError } = await supabase
+          .from('movements')
+          .update({ is_reversed: true })
+          .eq('id', movement.id)
 
-      if (updateError) throw updateError
+        if (updateError) throw updateError
+      }
 
       // 3. Refresh data
       await fetchWorksite()
@@ -494,9 +502,17 @@ export default function CantiereDetailPage() {
                                     <>
                                       {confirmReversalId === mov.id ? (
                                         <div className="flex items-center gap-1.5">
+                                          <input
+                                            type="number"
+                                            value={reversalQty}
+                                            onChange={(e) => setReversalQty(Math.min(Math.max(1, Number(e.target.value)), mov.quantity))}
+                                            min={1}
+                                            max={mov.quantity}
+                                            className="w-14 px-2 py-1.5 text-xs text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-red-400"
+                                          />
                                           <button
-                                            onClick={() => handleReversal(mov)}
-                                            disabled={reversingId === mov.id}
+                                            onClick={() => handleReversal(mov, reversalQty)}
+                                            disabled={reversingId === mov.id || reversalQty <= 0}
                                             className="flex items-center gap-1 px-2.5 py-1.5 bg-red-500 text-white text-xs font-semibold rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
                                           >
                                             {reversingId === mov.id ? (
@@ -504,7 +520,6 @@ export default function CantiereDetailPage() {
                                             ) : (
                                               <Undo2 className="w-3 h-3" />
                                             )}
-                                            Conferma
                                           </button>
                                           <button
                                             onClick={() => setConfirmReversalId(null)}
@@ -515,7 +530,7 @@ export default function CantiereDetailPage() {
                                         </div>
                                       ) : (
                                         <button
-                                          onClick={() => setConfirmReversalId(mov.id)}
+                                          onClick={() => { setConfirmReversalId(mov.id); setReversalQty(mov.quantity) }}
                                           className="flex items-center gap-1 px-2.5 py-1.5 text-red-500 hover:bg-red-50 text-xs font-medium rounded-lg transition-colors"
                                         >
                                           <Undo2 className="w-3.5 h-3.5" />

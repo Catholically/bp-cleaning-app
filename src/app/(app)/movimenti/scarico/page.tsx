@@ -716,17 +716,18 @@ function ScaricoContent() {
               <Minus className="w-6 h-6" />
             </button>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={quantity}
               onChange={(e) => {
-                const val = parseInt(e.target.value);
-                if (!isNaN(val) && val >= 1 && val <= selectedProduct.current_stock) setQuantity(val);
-                if (e.target.value === '' || val < 1) setQuantity(1);
-                if (val > selectedProduct.current_stock) setQuantity(selectedProduct.current_stock);
+                const raw = e.target.value.replace(/\D/g, '')
+                if (raw === '') { setQuantity('' as any); return }
+                const val = parseInt(raw, 10)
+                if (!isNaN(val)) setQuantity(Math.min(val, selectedProduct.current_stock))
               }}
+              onBlur={() => { if (!quantity || quantity < 1) setQuantity(1) }}
               onFocus={(e) => e.target.select()}
-              min={1}
-              max={selectedProduct.current_stock}
               className="text-5xl font-bold text-gray-900 w-24 text-center bg-transparent border-b-2 border-gray-200 focus:border-orange-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
             <button

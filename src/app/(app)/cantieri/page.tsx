@@ -51,6 +51,8 @@ function CantieriContent() {
         .from('movements')
         .select('worksite_id, total_cost')
         .eq('type', 'scarico')
+        .neq('is_reversed', true)
+        .is('reversal_of_id', null)
         .gte('created_at', monthStart.toISOString())
 
       const costsByWorksite = (costsData || []).reduce((acc: Record<string, number>, m: any) => {

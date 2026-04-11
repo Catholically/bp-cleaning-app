@@ -668,15 +668,18 @@ function CaricoContent() {
               <Minus className="w-6 h-6" />
             </button>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={quantity}
               onChange={(e) => {
-                const val = parseInt(e.target.value);
-                if (!isNaN(val) && val >= 1) setQuantity(val);
-                if (e.target.value === '') setQuantity(1);
+                const raw = e.target.value.replace(/\D/g, '')
+                if (raw === '') { setQuantity('' as any); return }
+                const val = parseInt(raw, 10)
+                if (!isNaN(val)) setQuantity(val)
               }}
+              onBlur={() => { if (!quantity || quantity < 1) setQuantity(1) }}
               onFocus={(e) => e.target.select()}
-              min={1}
               className="text-5xl font-bold text-gray-900 w-24 text-center bg-transparent border-b-2 border-gray-200 focus:border-emerald-500 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
             <button

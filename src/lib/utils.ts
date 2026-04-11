@@ -37,23 +37,9 @@ export function formatNumber(num: number, decimals = 2): string {
   }).format(num)
 }
 
-export function generateBarcode(): string {
-  // Generate a random EAN-13 compatible barcode starting with 200 (in-store use)
-  const prefix = '200'
-  const random = Math.floor(Math.random() * 1000000000).toString().padStart(9, '0')
-  const base = prefix + random
-  
-  // Calculate check digit
-  let sum = 0
-  for (let i = 0; i < 12; i++) {
-    sum += parseInt(base[i]) * (i % 2 === 0 ? 1 : 3)
-  }
-  const checkDigit = (10 - (sum % 10)) % 10
-  
-  return base + checkDigit
-}
 
 export function getStockStatusColor(current: number, min: number): string {
+  if (min === 0) return current > 0 ? 'text-emerald-500' : 'text-gray-400'
   const ratio = current / min
   if (ratio <= 1) return 'text-red-500'
   if (ratio <= 1.5) return 'text-amber-500'
@@ -61,6 +47,7 @@ export function getStockStatusColor(current: number, min: number): string {
 }
 
 export function getStockStatusBg(current: number, min: number): string {
+  if (min === 0) return current > 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'
   const ratio = current / min
   if (ratio <= 1) return 'bg-red-50 border-red-200'
   if (ratio <= 1.5) return 'bg-amber-50 border-amber-200'
@@ -68,6 +55,7 @@ export function getStockStatusBg(current: number, min: number): string {
 }
 
 export function getStockStatusLabel(current: number, min: number): string {
+  if (min === 0) return current > 0 ? 'OK' : 'N/A'
   const ratio = current / min
   if (ratio <= 1) return 'Riordino'
   if (ratio <= 1.5) return 'Basso'
@@ -100,6 +88,7 @@ export const SKU_PREFIXES: Record<string, string> = {
   deodorante: 'DEO',
   accessorio: 'ACC',
   attrezzatura: 'ATT',
+  macchinario: 'MAC',
   altro: 'ALT'
 }
 
