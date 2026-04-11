@@ -592,10 +592,8 @@ function ReportContent() {
                       {i + 1}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        <span className="text-gray-400 font-mono text-xs mr-1.5">{ws.code}</span>
-                        {ws.name}
-                      </p>
+                      <p className="text-sm font-medium text-gray-900 truncate">{ws.name}</p>
+                      <p className="text-xs text-gray-400 font-mono">{ws.code}</p>
                       <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div className="h-full bg-violet-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
                       </div>
