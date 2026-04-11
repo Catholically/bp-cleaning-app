@@ -47,7 +47,7 @@ export default function ModificaProdottoPage() {
   const [notes, setNotes] = useState('')
   const [serialNumber, setSerialNumber] = useState('')
   const [purchaseDate, setPurchaseDate] = useState('')
-  const [warrantyMonths, setWarrantyMonths] = useState(24)
+  const [warrantyMonths, setWarrantyMonths] = useState(12)
 
   useEffect(() => {
     if (params.id && !authLoading && isSuperuser) {
