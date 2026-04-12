@@ -40,7 +40,7 @@ export default function ModificaProdottoPage() {
   const [category, setCategory] = useState<ProductCategory>('detergente')
   const [unit, setUnit] = useState<ProductUnit>('pezzi')
   const [quantityPerPackage, setQuantityPerPackage] = useState(1)
-  const [unitCost, setUnitCost] = useState(0)
+  const [unitCost, setUnitCost] = useState<number | string>('')
   const [currentStock, setCurrentStock] = useState(0)
   const [minStock, setMinStock] = useState(5)
   const [supplierId, setSupplierId] = useState('')
@@ -116,7 +116,7 @@ export default function ModificaProdottoPage() {
           category,
           unit,
           quantity_per_package: quantityPerPackage,
-          unit_cost: unitCost,
+          unit_cost: Number(unitCost) || 0,
           current_stock: currentStock,
           min_stock: minStock,
           supplier_id: supplierId || null,
@@ -338,9 +338,10 @@ export default function ModificaProdottoPage() {
             <input
               type="number"
               value={unitCost}
-              onChange={(e) => setUnitCost(Number(e.target.value))}
+              onChange={(e) => setUnitCost(e.target.value === '' ? '' : Number(e.target.value))}
               min="0"
               step="0.01"
+              placeholder="0.00"
               className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
