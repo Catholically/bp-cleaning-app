@@ -106,6 +106,39 @@ export interface Movement {
   reversal_of_id?: string
 }
 
+// Machine types
+export type MachineStatus = 'attivo' | 'in_riparazione' | 'dismesso'
+
+export interface Machine {
+  id: string
+  code: string
+  name: string
+  brand?: string
+  model?: string
+  serial_number?: string
+  purchase_date?: string
+  purchase_cost: number
+  warranty_months: number
+  status: MachineStatus
+  supplier_id?: string
+  supplier?: Supplier
+  notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export const MACHINE_STATUS_LABELS: Record<MachineStatus, string> = {
+  attivo: 'Attivo',
+  in_riparazione: 'In Riparazione',
+  dismesso: 'Dismesso'
+}
+
+export const MACHINE_STATUS_COLORS: Record<MachineStatus, string> = {
+  attivo: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+  in_riparazione: 'text-amber-700 bg-amber-50 border-amber-200',
+  dismesso: 'text-gray-500 bg-gray-50 border-gray-200'
+}
+
 // View types
 export interface LowStockProduct {
   id: string

@@ -222,7 +222,7 @@ export default function NuovoProdottoPage() {
               onChange={(e) => setCategory(e.target.value as ProductCategory)}
               className="w-full px-3 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+              {Object.entries(CATEGORY_LABELS).filter(([key]) => key !== 'macchinario').map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
               ))}
             </select>

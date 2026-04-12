@@ -18,9 +18,23 @@ import {
   Boxes,
   Clock,
   Plus,
-  BarChart3
+  BarChart3,
+  Wrench,
+  ShieldAlert,
+  ShieldCheck,
+  Shield
 } from 'lucide-react'
 import Link from 'next/link'
+
+interface MachineInfo {
+  id: string
+  name: string
+  code: string
+  purchase_cost: number
+  status: string
+  purchase_date?: string
+  warranty_months?: number
+}
 
 interface DashboardStats {
   totalProducts: number
@@ -30,6 +44,9 @@ interface DashboardStats {
   todayMovements: number
   monthlySpend: number
   recentMovements: RecentMovement[]
+  machinesValue: number
+  machinesCount: number
+  machinesWarningCount: number
 }
 
 interface LowStockItem {
@@ -54,6 +71,7 @@ export function AdminDashboard() {
   const { profile, isSuperuser } = useAuth()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [lowStock, setLowStock] = useState<LowStockItem[]>([])
+  const [machines, setMachines] = useState<MachineInfo[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
@@ -63,11 +81,12 @@ export function AdminDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch products stats
+      // Fetch products stats (exclude macchinari - tracked separately)
       const { data: products } = await supabase
         .from('products')
         .select('current_stock, unit_cost, min_stock, name, unit, id')
         .eq('is_active', true)
+        .neq('category', 'macchinario')
 
       // Fetch active worksites
       const { count: worksitesCount } = await supabase
@@ -93,6 +112,12 @@ export function AdminDashboard() {
         .eq('type', 'scarico')
         .gte('created_at', monthStart.toISOString())
 
+      // Fetch machines
+      const { data: machinesData } = await supabase
+        .from('machines')
+        .select('id, name, code, purchase_cost, status, purchase_date, warranty_months')
+        .neq('status', 'dismesso')
+
       // Fetch recent movements with product, worksite, and operator names
       const { data: recentMov } = await supabase
         .from('movements')
@@ -117,6 +142,17 @@ export function AdminDashboard() {
         (sum: number, m: any) => sum + (m.total_cost || 0), 0
       ) || 0
 
+      const machinesValue = (machinesData || []).reduce(
+        (sum: number, m: any) => sum + (m.purchase_cost || 0), 0
+      )
+      const now = new Date()
+      const machinesWarningCount = (machinesData || []).filter((m: any) => {
+        if (!m.purchase_date || !m.warranty_months) return false
+        const end = new Date(m.purchase_date)
+        end.setMonth(end.getMonth() + m.warranty_months)
+        return end.getTime() - now.getTime() < 90 * 24 * 60 * 60 * 1000
+      }).length
+
       const recentMovements: RecentMovement[] = (recentMov || []).map((m: any) => ({
         id: m.id,
         type: m.type,
@@ -127,6 +163,8 @@ export function AdminDashboard() {
         created_at: m.created_at
       }))
 
+      setMachines(machinesData || [])
+
       setStats({
         totalProducts: products?.length || 0,
         totalStockValue,
@@ -134,7 +172,10 @@ export function AdminDashboard() {
         activeWorksites: worksitesCount || 0,
         todayMovements: movementsCount || 0,
         monthlySpend,
-        recentMovements
+        recentMovements,
+        machinesValue,
+        machinesCount: (machinesData || []).length,
+        machinesWarningCount
       })
 
       setLowStock(lowStockItems.slice(0, 3).map((p: any) => ({
@@ -341,6 +382,96 @@ export function AdminDashboard() {
                 <h3 className="font-semibold text-gray-900">Cantiere</h3>
                 <p className="text-xs text-gray-500">Aggiungi nuovo</p>
               </div>
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {/* Macchinari Widget */}
+      <div className="px-5 mt-6 max-w-4xl mx-auto animate-slide-up" style={{ animationDelay: '0.42s' }}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Wrench className="w-4 h-4 text-sky-600" />
+            <h2 className="text-sm font-semibold text-gray-900">Parco Macchinari</h2>
+          </div>
+          <Link href="/macchinari" className="text-xs text-sky-600 font-medium">
+            Vedi tutti
+          </Link>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          {/* Value + count header */}
+          <div className="p-4 flex items-center justify-between border-b border-gray-100">
+            <div>
+              <p className="text-xs text-gray-500">Valore Totale</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats?.machinesValue || 0)}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-gray-500">{stats?.machinesCount || 0} attivi</p>
+              {(stats?.machinesWarningCount || 0) > 0 && (
+                <p className="text-xs text-amber-500 flex items-center gap-1 justify-end mt-0.5">
+                  <ShieldAlert className="w-3 h-3" />
+                  {stats?.machinesWarningCount} garanzia
+                </p>
+              )}
+            </div>
+          </div>
+          {/* Quick list of machines */}
+          {machines.length > 0 ? (
+            <>
+              {machines.slice(0, 3).map((m, index) => {
+                const warranty = (() => {
+                  if (!m.purchase_date || !m.warranty_months) return null
+                  const end = new Date(m.purchase_date)
+                  end.setMonth(end.getMonth() + m.warranty_months)
+                  const days = Math.ceil((end.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+                  if (days < 0) return 'expired'
+                  if (days <= 90) return 'expiring'
+                  return 'active'
+                })()
+                return (
+                  <Link
+                    key={m.id}
+                    href={`/macchinari/${m.id}`}
+                    className={`flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors ${
+                      index !== Math.min(machines.length, 3) - 1 ? 'border-b border-gray-100' : ''
+                    }`}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center flex-shrink-0">
+                      <Wrench className="w-4 h-4 text-sky-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 text-sm truncate">{m.name}</p>
+                      <p className="text-xs text-gray-400">{m.code}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-sm font-semibold text-gray-700">{formatCurrency(m.purchase_cost)}</p>
+                      {warranty && (
+                        <span className={`text-xs ${
+                          warranty === 'expired' ? 'text-red-500' :
+                          warranty === 'expiring' ? 'text-amber-500' : 'text-emerald-500'
+                        }`}>
+                          {warranty === 'expired' ? '⚠ Scaduta' :
+                           warranty === 'expiring' ? '⚠ In scadenza' : '✓ Garanzia'}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                )
+              })}
+            </>
+          ) : (
+            <div className="p-4 text-center text-gray-400 text-sm">
+              Nessun macchinario registrato
+            </div>
+          )}
+          {/* Add button */}
+          {isSuperuser && (
+            <Link
+              href="/macchinari/nuovo"
+              className="flex items-center justify-center gap-2 p-3 text-sky-600 text-sm font-medium hover:bg-sky-50 transition-colors border-t border-gray-100"
+            >
+              <Plus className="w-4 h-4" />
+              Aggiungi Macchinario
             </Link>
           )}
         </div>
